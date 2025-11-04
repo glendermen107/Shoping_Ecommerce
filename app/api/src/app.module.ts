@@ -4,14 +4,17 @@ import { TypeOrmModule } from '@nestjs/typeorm';
 import { AppController } from './app.controller';
 import { AppService } from './app.service';
 import { Category } from './products/entities/category.entity';
-import { Product } from './products/entities/product.entity';
+import { Product } from './products/entities/product.entity'; // Mantén tus importaciones existentes
 import { Cart } from './cart/entities/cart.entity';
 import { CartItem } from './cart/entities/cart-item.entity';
 import { User } from './auth/entities/user.entity';
+import { Order } from './orders/entities/order.entity'; // <-- 1. Importa Order
+import { OrderItem } from './orders/entities/order-item.entity'; // <-- 2. Importa OrderItem
 import { ProductsModule } from './products/products.module';
 import { RedisModule } from './redis/redis.module';
 import { CartModule } from './cart/cart.module';
-import { AuthModule } from './auth/auth.module'; // Asegúrate de tener este módulo
+import { AuthModule } from './auth/auth.module';
+import { OrdersModule } from './orders/orders.module'; // Asegúrate de que OrdersModule esté importado
 import { SeedModule } from './seed/seed.module';
 
 @Module({
@@ -29,7 +32,7 @@ import { SeedModule } from './seed/seed.module';
         username: configService.get<string>('DB_USERNAME', 'dev'),
         password: configService.get<string>('DB_PASSWORD', 'devpass'), // Usa tu contraseña por defecto aquí
         database: configService.get<string>('DB_DATABASE', 'ecommerce'),
-        entities: [Product, Category, Cart, CartItem, User],
+        entities: [Product, Category, Cart, CartItem, User, Order, OrderItem], // <-- 3. Añade las entidades aquí
         synchronize: true, // En desarrollo, crea/actualiza las tablas automáticamente. No usar en producción.
       }),
     }),
@@ -37,6 +40,7 @@ import { SeedModule } from './seed/seed.module';
     RedisModule,
     CartModule,
     AuthModule,
+    OrdersModule,
     SeedModule,
   ],
   controllers: [AppController],

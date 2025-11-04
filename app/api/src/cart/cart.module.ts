@@ -15,5 +15,6 @@ import { AuthModule } from '../auth/auth.module'; // Para usar los guards de aut
   ],
   controllers: [CartController],
   providers: [CartService],
+  exports: [CartService],
 })
 export class CartModule {}
