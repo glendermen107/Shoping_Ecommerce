@@ -39,12 +39,12 @@ export class CartService {
     }
 
     let cart = await this.cartRepository.findOne({
-      where: { userId },
+      where: { user: { id: userId } },
       relations: ['items', 'items.product'],
     });
 
     if (!cart) {
-      cart = this.cartRepository.create({ userId, items: [] });
+      cart = this.cartRepository.create({ user: { id: userId }, items: [] });
     }
 
     let cartItem = cart.items.find((item) => item.product.id === productId);
@@ -66,7 +66,7 @@ export class CartService {
 
   async getCartPersistent(userId: number) {
     const cart = await this.cartRepository.findOne({
-      where: { userId },
+      where: { user: { id: userId } },
       relations: ['items', 'items.product'],
     });
 
@@ -79,7 +79,7 @@ export class CartService {
 
   async removeFromCartPersistent(userId: number, productId: number): Promise<Cart> {
     const cart = await this.cartRepository.findOne({
-      where: { userId },
+      where: { user: { id: userId } },
       relations: ['items', 'items.product'],
     });
 
@@ -97,10 +97,18 @@ export class CartService {
   }
 
   async clearCartPersistent(userId: number): Promise<void> {
-    const cart = await this.cartRepository.findOne({ where: { userId } });
+    const cart = await this.cartRepository.findOne({ where: { user: { id: userId } } });
     if (cart) {
       await this.cartRepository.remove(cart);
     }
+  }
+
+  async getRawCartByUserId(userId: number): Promise<Cart | null> {
+    const cart = await this.cartRepository.findOne({
+      where: { user: { id: userId } },
+      relations: ['items', 'items.product'],
+    });
+    return cart;
   }
 
   // --- Métodos para visitantes (Redis) ---
