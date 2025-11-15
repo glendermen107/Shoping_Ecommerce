@@ -5,6 +5,9 @@ export type Product = {
   price: number;
   imageUrl?: string;
   description?: string;
+  // Opcionales, por si el backend los expone:
+  stock?: number;
+  categoryName?: string;
 };
 
 export type CartItem = {
