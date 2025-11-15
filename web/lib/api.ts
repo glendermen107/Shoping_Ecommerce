@@ -1,15 +1,28 @@
 import type { Product } from "./types";
 
+const apiBaseUrl =
+  process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:3001";
+
 export async function fetchProducts(query?: string): Promise<Product[]> {
   try {
-    const res = await fetch("http://localhost:3001/products", {
-      cache: "no-store",
-    });
+    const url = new URL(`${apiBaseUrl}/products`);
 
-    if (!res.ok) throw new Error();
-    return await res.json();
-  } catch {
-    // Datos mock por ahora
+    if (query) {
+      url.searchParams.set("q", query);
+    }
+
+    const response = await fetch(url.toString(), { cache: "no-store" });
+
+    if (!response.ok) {
+      throw new Error(`Error al obtener productos: ${response.status}`);
+    }
+
+    const data = (await response.json()) as Product[];
+    return data;
+  } catch (error) {
+    console.error("fetchProducts error:", error);
+
+    // Fallback de desarrollo por si el backend se cae
     return [
       {
         id: "1",
@@ -17,7 +30,7 @@ export async function fetchProducts(query?: string): Promise<Product[]> {
         name: "Zapatillas",
         price: 39990,
         imageUrl: "/placeholder.png",
-        description: "Zapatillas de ejemplo",
+        description: "Producto de ejemplo",
       },
       {
         id: "2",
@@ -25,19 +38,18 @@ export async function fetchProducts(query?: string): Promise<Product[]> {
         name: "Polera",
         price: 12990,
         imageUrl: "/placeholder.png",
-        description: "Polera de ejemplo",
+        description: "Producto de ejemplo",
       },
     ];
   }
 }
 
 export async function fetchProductBySlug(slug: string): Promise<Product> {
+  // Por ahora buscamos por slug en la lista completa
   const products = await fetchProducts();
-
-  const product = products.find((p) => p.slug === slug);
+  const product = products.find((item) => item.slug === slug);
 
   if (!product) {
-    // Fallback por si no encuentra nada
     return {
       id: "0",
       slug,
