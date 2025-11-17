@@ -1,6 +1,8 @@
 // web/app/catalog/page.tsx
 import ProductGrid from "../../components/productGrid";
 import { fetchProducts } from "../../lib/api";
+import OffersCarousel from "../../components/offersCarousel";
+
 
 type CatalogPageProps = {
   searchParams?: {
@@ -28,6 +30,7 @@ export default async function CatalogPage({ searchParams }: CatalogPageProps) {
   const featuredProducts = filteredProducts.slice(0, 4);
 
   return (
+    
     <section className="space-y-8">
       {/* Encabezado + promo de despacho */}
       <header className="space-y-3">
@@ -119,17 +122,13 @@ export default async function CatalogPage({ searchParams }: CatalogPageProps) {
 
       {/* Productos destacados */}
       {featuredProducts.length > 0 && (
-        <div className="space-y-3">
-          <div className="flex items-center justify-between">
-            <h2 className="text-lg font-semibold">Productos destacados</h2>
-            <p className="text-xs text-neutral-400">
-              Sección de referencia, más adelante podemos marcar productos como
-              “en oferta” desde el panel admin.
-            </p>
-          </div>
-          <ProductGrid products={featuredProducts} />
-        </div>
+        <OffersCarousel
+          products={featuredProducts}
+          title="Ofertas y productos destacados"
+          subtitle="Selección de productos recomendados. Más adelante se podrán marcar directamente desde el panel admin."
+        />
       )}
+
 
       {/* Todo el catálogo filtrado */}
       {filteredProducts.length > 0 && (

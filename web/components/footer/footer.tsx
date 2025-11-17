@@ -1,8 +1,9 @@
 export default function Footer() {
   const year = new Date().getFullYear();
 
+  
   return (
-    <footer className="mt-10 border-t border-neutral-200 py-6 text-sm text-neutral-600">
+      <footer className="mt-10 border-t border-emerald-200 bg-white/70 py-6 text-sm text-slate-600">
       <div className="mx-auto max-w-7xl px-0 md:px-2 grid gap-4 md:grid-cols-3">
         {/* Columna 1: marca */}
         <div className="space-y-1">

@@ -99,8 +99,22 @@ export default function HomePage() {
               Jabones, alcohol gel y más.
             </p>
           </Link>
+          <Link
+            href="/catalog"
+            className="rounded-lg bg-emerald-600 px-4 py-2 text-sm font-medium text-white hover:bg-emerald-700 transition"
+          >
+            Ver catálogo
+          </Link>
+          <Link
+            href="/contact"
+            className="rounded-lg border border-teal-400 px-4 py-2 text-sm font-medium text-teal-700 hover:bg-teal-50 transition"
+          >
+            Contactar por pedidos
+          </Link>
+
         </div>
       </div>
     </section>
   );
 }
+

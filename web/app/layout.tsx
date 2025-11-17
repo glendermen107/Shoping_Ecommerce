@@ -11,7 +11,7 @@ export const metadata = {
 export default function RootLayout({ children }: { children: ReactNode }) {
   return (
     <html lang="es">
-      <body className="min-h-screen bg-white text-neutral-900">
+      <body className="min-h-screen bg-gradient-to-b from-emerald-50 to-teal-50 text-slate-900">
         <div className="mx-auto max-w-7xl px-4">
           <Navbar />
           <main className="py-6">{children}</main>
@@ -21,3 +21,4 @@ export default function RootLayout({ children }: { children: ReactNode }) {
     </html>
   );
 }
+

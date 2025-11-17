@@ -9,7 +9,7 @@ const navLinks = [
   { href: "/", label: "Inicio" },
   { href: "/catalog", label: "Catálogo" },
   { href: "/contact", label: "Contacto" },
-  { href: "/admin", label: "Admin" }, // Más adelante lo protegeremos con auth
+  { href: "/admin", label: "Admin" },
 ];
 
 export default function Navbar() {
@@ -23,11 +23,11 @@ export default function Navbar() {
   }, []);
 
   return (
-    <header className="flex items-center justify-between py-4 border-b border-neutral-200">
+    <header className="flex items-center justify-between py-4 border-b border-emerald-200">
       {/* Logo / Marca */}
-      <Link href="/" className="text-xl font-semibold">
+      <Link href="/" className="text-xl font-semibold text-emerald-700">
         MiTienda
-        <span className="ml-1 text-xs font-normal text-neutral-500">
+        <span className="ml-1 text-xs font-normal text-emerald-500">
           · Limpieza
         </span>
       </Link>
@@ -44,8 +44,10 @@ export default function Navbar() {
             <Link
               key={link.href}
               href={link.href}
-              className={`hover:text-black transition ${
-                isActive ? "font-medium text-black" : "text-neutral-600"
+              className={`transition ${
+                isActive
+                  ? "font-medium text-emerald-700"
+                  : "text-slate-600 hover:text-emerald-700"
               }`}
             >
               {link.label}
@@ -53,13 +55,12 @@ export default function Navbar() {
           );
         })}
 
-        {/* Separador visual */}
-        <span className="h-4 w-px bg-neutral-300" />
+        <span className="h-4 w-px bg-emerald-200" />
 
         {/* Link de Ingreso */}
         <Link
           href="/auth/login"
-          className="text-sm text-neutral-700 hover:text-black"
+          className="text-sm text-slate-700 hover:text-emerald-700"
         >
           Ingresar
         </Link>
@@ -67,10 +68,10 @@ export default function Navbar() {
         {/* Carrito con contador */}
         <Link
           href="/cart"
-          className="flex items-center gap-2 rounded-full border border-neutral-300 px-3 py-1 text-sm hover:bg-neutral-100 transition"
+          className="flex items-center gap-2 rounded-full border border-emerald-300 bg-white/70 px-3 py-1 text-sm hover:bg-emerald-50 transition"
         >
           <span>Carrito</span>
-          <span className="inline-flex min-w-[1.5rem] items-center justify-center rounded-full bg-neutral-900 text-white text-xs">
+          <span className="inline-flex min-w-[1.5rem] items-center justify-center rounded-full bg-emerald-600 text-white text-xs">
             {cartCount}
           </span>
         </Link>
@@ -78,4 +79,3 @@ export default function Navbar() {
     </header>
   );
 }
-

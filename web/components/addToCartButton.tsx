@@ -19,12 +19,14 @@ export default function AddToCartButton({ product }: AddToCartButtonProps) {
   };
 
   return (
-    <button
-      onClick={handleClick}
-      disabled={isAdding}
-      className="rounded-md border px-4 py-2 hover:bg-white hover:text-black transition"
-    >
-      {isAdding ? "Agregando..." : "Agregar al carrito"}
-    </button>
+  <button
+    onClick={handleClick}
+    disabled={isAdding}
+    className="rounded-md bg-emerald-600 px-4 py-2 text-sm font-medium text-white hover:bg-emerald-700 disabled:opacity-60 disabled:cursor-not-allowed transition"
+  >
+    {isAdding ? "Agregando..." : "Agregar al carrito"}
+  </button>
+
   );
 }
+
