@@ -11,4 +11,13 @@ export class Category {
 
   @OneToMany(() => Product, (product) => product.category)
   products: Product[];
+
+  @Column({ type: 'boolean', default: false })
+  isFeatured: boolean;
+
+  @Column({ type: 'boolean', default: false })
+  isOnSale: boolean;
+
+  @Column({ type: 'int', nullable: true })
+  discountPercent: number | null;
 }

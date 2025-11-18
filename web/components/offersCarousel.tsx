@@ -13,14 +13,15 @@ type OffersCarouselProps = {
 
 export default function OffersCarousel({
   products,
-  title = "Ofertas destacadas",
-  subtitle = "Productos con promoción o selección especial.",
+  title = "Ofertas y productos destacados",
+  subtitle = "Selección especial de productos en oferta o destacados.",
 }: OffersCarouselProps) {
   const containerRef = useRef<HTMLDivElement | null>(null);
 
   const scrollBy = (direction: "left" | "right") => {
     const container = containerRef.current;
     if (!container) return;
+
     const cardWidth = container.firstElementChild
       ? (container.firstElementChild as HTMLElement).clientWidth
       : 260;
@@ -37,7 +38,7 @@ export default function OffersCarousel({
 
   return (
     <section className="space-y-3">
-      {/* Título + botones */}
+      {/* Título + controles */}
       <div className="flex items-center justify-between gap-2">
         <div>
           <h2 className="text-lg font-semibold text-emerald-800">
@@ -68,7 +69,7 @@ export default function OffersCarousel({
         </div>
       </div>
 
-      {/* Carrusel */}
+      {/* Carrusel horizontal */}
       <div
         ref={containerRef}
         className="flex gap-4 overflow-x-auto pb-2 scroll-smooth snap-x snap-mandatory"

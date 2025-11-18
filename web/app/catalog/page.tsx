@@ -1,8 +1,6 @@
-// web/app/catalog/page.tsx
 import ProductGrid from "../../components/productGrid";
-import { fetchProducts } from "../../lib/api";
 import OffersCarousel from "../../components/offersCarousel";
-
+import { fetchProducts } from "../../lib/api";
 
 type CatalogPageProps = {
   searchParams?: {
@@ -18,7 +16,7 @@ export default async function CatalogPage({ searchParams }: CatalogPageProps) {
   // Traemos todos los productos desde la API (o mocks si falla)
   const products = await fetchProducts();
 
-  // Filtro por texto (buscador) + categoría “lógica” (por nombre)
+  // Filtro por texto y "categoría" simple basada en nombre
   const filteredProducts = products.filter((product) => {
     const name = product.name.toLowerCase();
     const matchesSearch = search ? name.includes(search) : true;
@@ -27,24 +25,31 @@ export default async function CatalogPage({ searchParams }: CatalogPageProps) {
   });
 
   const totalCount = filteredProducts.length;
-  const featuredProducts = filteredProducts.slice(0, 4);
+
+  // Destacados para el carrusel:
+  // 1) Primero los que vienen marcados con isFeatured
+  // 2) Si no hay, tomamos los primeros 4 como fallback
+  let featuredProducts = filteredProducts.filter((p) => p.isFeatured);
+
+  if (featuredProducts.length === 0) {
+    featuredProducts = filteredProducts.slice(0, 4);
+  }
 
   return (
-    
     <section className="space-y-8">
       {/* Encabezado + promo de despacho */}
       <header className="space-y-3">
-        <h1 className="text-2xl font-semibold">Catálogo</h1>
-        <p className="text-neutral-300 text-sm">
+        <h1 className="text-2xl font-semibold text-emerald-800">Catálogo</h1>
+        <p className="text-slate-700 text-sm">
           Explora nuestros productos de limpieza para hogar y empresas. 
-          Todos los precios incluyen información clara de formato y presentación.
+          Despacho a distintas comunas y opción de retiro en tienda.
         </p>
 
-        <div className="rounded-xl border border-neutral-800 bg-neutral-900/40 px-4 py-3 text-sm">
-          <p className="font-medium">
+        <div className="rounded-xl border border-emerald-200 bg-white/80 px-4 py-3 text-sm">
+          <p className="font-medium text-emerald-800">
             🛻 Despacho gratis sobre $50.000 en productos.
           </p>
-          <p className="text-neutral-400 text-xs">
+          <p className="text-slate-500 text-xs">
             Válido para comunas seleccionadas. El costo de envío se confirma al
             momento de coordinar el pedido.
           </p>
@@ -63,23 +68,25 @@ export default async function CatalogPage({ searchParams }: CatalogPageProps) {
             name="q"
             defaultValue={searchParams?.q ?? ""}
             placeholder="Buscar por nombre (ej: cloro, desengrasante)..."
-            className="flex-1 rounded-md border border-neutral-700 bg-transparent px-2 py-1 outline-none focus:border-neutral-400"
+            className="flex-1 rounded-md border border-emerald-200 bg-white/70 px-2 py-1 outline-none focus:border-emerald-400"
           />
           <button
             type="submit"
-            className="rounded-md border px-3 py-1 font-medium hover:bg-white hover:text-black transition"
+            className="rounded-md bg-emerald-600 px-3 py-1 font-medium text-white hover:bg-emerald-700 transition"
           >
             Buscar
           </button>
         </form>
 
-        {/* Filtros rápidos por categoría (texto) */}
+        {/* Filtros rápidos por categoría (por nombre) */}
         <div className="flex flex-wrap gap-2 text-xs md:text-sm">
-          <span className="text-neutral-400">Filtrar rápido:</span>
+          <span className="text-slate-500">Filtrar rápido:</span>
           <a
             href="/catalog"
             className={`rounded-full border px-3 py-1 ${
-              !category ? "border-white" : "border-neutral-600"
+              !category
+                ? "border-emerald-500 text-emerald-700 bg-white/80"
+                : "border-emerald-200 text-slate-600 hover:bg-emerald-50"
             }`}
           >
             Todos
@@ -87,7 +94,9 @@ export default async function CatalogPage({ searchParams }: CatalogPageProps) {
           <a
             href="/catalog?cat=cloro"
             className={`rounded-full border px-3 py-1 ${
-              category === "cloro" ? "border-white" : "border-neutral-600"
+              category === "cloro"
+                ? "border-emerald-500 text-emerald-700 bg-white/80"
+                : "border-emerald-200 text-slate-600 hover:bg-emerald-50"
             }`}
           >
             Cloro y desinfectantes
@@ -95,7 +104,9 @@ export default async function CatalogPage({ searchParams }: CatalogPageProps) {
           <a
             href="/catalog?cat=hogar"
             className={`rounded-full border px-3 py-1 ${
-              category === "hogar" ? "border-white" : "border-neutral-600"
+              category === "hogar"
+                ? "border-emerald-500 text-emerald-700 bg.white/80"
+                : "border-emerald-200 text-slate-600 hover:bg-emerald-50"
             }`}
           >
             Limpieza del hogar
@@ -103,7 +114,9 @@ export default async function CatalogPage({ searchParams }: CatalogPageProps) {
           <a
             href="/catalog?cat=personal"
             className={`rounded-full border px-3 py-1 ${
-              category === "personal" ? "border-white" : "border-neutral-600"
+              category === "personal"
+                ? "border-emerald-500 text-emerald-700 bg.white/80"
+                : "border-emerald-200 text-slate-600 hover:bg-emerald-50"
             }`}
           >
             Limpieza personal
@@ -112,7 +125,7 @@ export default async function CatalogPage({ searchParams }: CatalogPageProps) {
       </div>
 
       {/* Info de resultados */}
-      <p className="text-xs text-neutral-400">
+      <p className="text-xs text-slate-500">
         {totalCount === 0
           ? "No se encontraron productos para estos filtros."
           : `Mostrando ${totalCount} producto${
@@ -120,20 +133,21 @@ export default async function CatalogPage({ searchParams }: CatalogPageProps) {
             } disponibles.`}
       </p>
 
-      {/* Productos destacados */}
+      {/* Carrusel de ofertas / destacados */}
       {featuredProducts.length > 0 && (
         <OffersCarousel
           products={featuredProducts}
           title="Ofertas y productos destacados"
-          subtitle="Selección de productos recomendados. Más adelante se podrán marcar directamente desde el panel admin."
+          subtitle="Productos seleccionados manualmente (isFeatured) o a modo de ejemplo. Más adelante podrás gestionarlos desde el panel admin."
         />
       )}
-
 
       {/* Todo el catálogo filtrado */}
       {filteredProducts.length > 0 && (
         <div className="space-y-3">
-          <h2 className="text-lg font-semibold">Todo el catálogo</h2>
+          <h2 className="text-lg font-semibold text-emerald-800">
+            Todo el catálogo
+          </h2>
           <ProductGrid products={filteredProducts} />
         </div>
       )}
