@@ -18,11 +18,8 @@ export default function RootLayout({
     <html lang="es" suppressHydrationWarning>
       <body
         className="
-          min-h-screen
-          bg-slate-50 text-slate-900
-          dark:bg-slate-950 dark:text-slate-100
-        "
-      >
+          min-h-screen transition-colors duration-300"
+        >
         <AppThemeProvider>
           <div className="w-full">
             <Navbar />
