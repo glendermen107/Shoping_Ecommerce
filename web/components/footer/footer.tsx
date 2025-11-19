@@ -1,18 +1,32 @@
+import Image from "next/image";
+
 export default function Footer() {
   const year = new Date().getFullYear();
 
-  
   return (
-      <footer className="mt-10 border-t border-emerald-200 bg-white/70 py-6 text-sm text-slate-600">
+    <footer className="mt-10 border-t border-emerald-200 bg-white/70 py-6 text-sm text-slate-600">
       <div className="mx-auto max-w-7xl px-0 md:px-2 grid gap-4 md:grid-cols-3">
-        {/* Columna 1: marca */}
-        <div className="space-y-1">
-          <p className="font-semibold">MiTienda · Productos de limpieza</p>
+        
+        {/* Columna 1: marca + logo */}
+        <div className="space-y-2 flex flex-col">
+          <div className="flex items-center gap-3">
+            <Image
+              src="/logo.jpeg"
+              alt="Cleaning Line GP"
+              width={45}
+              height={45}
+              className="rounded-md"
+            />
+            <p className="font-semibold text-emerald-800">
+              Cleaning Line GP · Productos de limpieza
+            </p>
+          </div>
+
           <p className="text-xs text-neutral-500">
             Venta y distribución de productos de limpieza para hogar y empresas.
           </p>
           <p className="text-xs text-neutral-500">
-            &copy; {year} MiTienda — Todos los derechos reservados.
+            &copy; {year} Cleaning Line GP — Todos los derechos reservados.
           </p>
         </div>
 
@@ -30,10 +44,7 @@ export default function Footer() {
           <p className="font-semibold text-neutral-700">Contacto</p>
           <p>
             WhatsApp:{" "}
-            <span className="underline">
-              +56 9 0000 0000
-            </span>{" "}
-            {/* reemplazar por el real */}
+            <span className="underline">+56 9 0000 0000</span>
           </p>
           <p>
             Correo:{" "}

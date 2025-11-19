@@ -1,156 +1,268 @@
 import ProductGrid from "../../components/productGrid";
 import OffersCarousel from "../../components/offersCarousel";
+import PriceRangeFilter from "../../components/priceRangeFilter";
 import { fetchProducts } from "../../lib/api";
 
 type CatalogPageProps = {
   searchParams?: {
     q?: string;
     cat?: string;
+    featured?: string;
+    onSale?: string;
+    minPrice?: string;
+    maxPrice?: string;
   };
 };
 
 export default async function CatalogPage({ searchParams }: CatalogPageProps) {
   const search = searchParams?.q?.toLowerCase() ?? "";
-  const category = searchParams?.cat?.toLowerCase() ?? "";
+  const category = searchParams?.cat as
+    | "cloro"
+    | "hogar"
+    | "personal"
+    | undefined;
 
-  // Traemos todos los productos desde la API (o mocks si falla)
+  const onlyFeatured = searchParams?.featured === "1";
+  const onlyOnSale = searchParams?.onSale === "1";
+  const minPrice = searchParams?.minPrice
+    ? Number(searchParams.minPrice)
+    : undefined;
+  const maxPrice = searchParams?.maxPrice
+    ? Number(searchParams.maxPrice)
+    : undefined;
+
   const products = await fetchProducts();
 
-  // Filtro por texto y "categoría" simple basada en nombre
+  // Nos aseguramos de trabajar siempre con número
+  const prices = products.map((p) => Number(p.price) || 0);
+  const globalMaxPrice = prices.length > 0 ? Math.max(...prices) : 10000;
+
+  // FILTROS
   const filteredProducts = products.filter((product) => {
     const name = product.name.toLowerCase();
+    const price = Number(product.price) || 0;
+
     const matchesSearch = search ? name.includes(search) : true;
-    const matchesCategory = category ? name.includes(category) : true;
-    return matchesSearch && matchesCategory;
+
+    const matchesCategory = category
+      ? product.categoryKey === category
+      : true;
+
+    const matchesFeatured = onlyFeatured ? !!product.isFeatured : true;
+    const matchesOnSale = onlyOnSale ? !!product.isOnSale : true;
+
+    const matchesMinPrice =
+      typeof minPrice === "number" && !Number.isNaN(minPrice)
+        ? price >= minPrice
+        : true;
+
+    const matchesMaxPrice =
+      typeof maxPrice === "number" && !Number.isNaN(maxPrice)
+        ? price <= maxPrice
+        : true;
+
+    return (
+      matchesSearch &&
+      matchesCategory &&
+      matchesFeatured &&
+      matchesOnSale &&
+      matchesMinPrice &&
+      matchesMaxPrice
+    );
   });
 
   const totalCount = filteredProducts.length;
 
-  // Destacados para el carrusel:
-  // 1) Primero los que vienen marcados con isFeatured
-  // 2) Si no hay, tomamos los primeros 4 como fallback
+  // Destacados → carrusel
   let featuredProducts = filteredProducts.filter((p) => p.isFeatured);
-
   if (featuredProducts.length === 0) {
     featuredProducts = filteredProducts.slice(0, 4);
   }
 
   return (
-    <section className="space-y-8">
-      {/* Encabezado + promo de despacho */}
+    <section className="space-y-6">
+      {/* Encabezado general */}
       <header className="space-y-3">
-        <h1 className="text-2xl font-semibold text-emerald-800">Catálogo</h1>
-        <p className="text-slate-700 text-sm">
-          Explora nuestros productos de limpieza para hogar y empresas. 
-          Despacho a distintas comunas y opción de retiro en tienda.
+        <h1 className="text-2xl font-semibold text-emerald-400">
+          Catálogo
+        </h1>
+        <p className="text-slate-300 text-sm">
+          Explora nuestros productos de limpieza para hogar y empresas.
         </p>
-
-        <div className="rounded-xl border border-emerald-200 bg-white/80 px-4 py-3 text-sm">
-          <p className="font-medium text-emerald-800">
-            🛻 Despacho gratis sobre $50.000 en productos.
-          </p>
-          <p className="text-slate-500 text-xs">
-            Válido para comunas seleccionadas. El costo de envío se confirma al
-            momento de coordinar el pedido.
-          </p>
-        </div>
       </header>
 
-      {/* Buscador + filtros rápidos */}
-      <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
-        {/* Buscador */}
-        <form
-          action="/catalog"
-          className="flex w-full max-w-md gap-2 text-sm"
-        >
-          <input
-            type="text"
-            name="q"
-            defaultValue={searchParams?.q ?? ""}
-            placeholder="Buscar por nombre (ej: cloro, desengrasante)..."
-            className="flex-1 rounded-md border border-emerald-200 bg-white/70 px-2 py-1 outline-none focus:border-emerald-400"
-          />
-          <button
-            type="submit"
-            className="rounded-md bg-emerald-600 px-3 py-1 font-medium text-white hover:bg-emerald-700 transition"
+      {/* LAYOUT PRINCIPAL EN DOS COLUMNAS */}
+      <div className="flex gap-6">
+        {/* ───────────── SIDEBAR IZQUIERDO ───────────── */}
+        <aside
+            className="
+              hidden md:block
+              w-[300px]
+              rounded-3xl border border-emerald-200 bg-emerald-50
+              p-5 space-y-6 text-sm shadow-md text-black
+            "
           >
-            Buscar
-          </button>
-        </form>
+          {/* Título / descripción corta */}
+          <div className="space-y-1">
+            <p className="text-xs font-semibold uppercase tracking-wide text-emerald-800">
+              Filtros
+            </p>
+            <p className="text-[11px] text-emerald-900">
+              Ajusta los filtros para encontrar el producto que necesitas.
+            </p>
+          </div>
 
-        {/* Filtros rápidos por categoría (por nombre) */}
-        <div className="flex flex-wrap gap-2 text-xs md:text-sm">
-          <span className="text-slate-500">Filtrar rápido:</span>
-          <a
-            href="/catalog"
-            className={`rounded-full border px-3 py-1 ${
-              !category
-                ? "border-emerald-500 text-emerald-700 bg-white/80"
-                : "border-emerald-200 text-slate-600 hover:bg-emerald-50"
-            }`}
-          >
-            Todos
-          </a>
-          <a
-            href="/catalog?cat=cloro"
-            className={`rounded-full border px-3 py-1 ${
-              category === "cloro"
-                ? "border-emerald-500 text-emerald-700 bg-white/80"
-                : "border-emerald-200 text-slate-600 hover:bg-emerald-50"
-            }`}
-          >
-            Cloro y desinfectantes
-          </a>
-          <a
-            href="/catalog?cat=hogar"
-            className={`rounded-full border px-3 py-1 ${
-              category === "hogar"
-                ? "border-emerald-500 text-emerald-700 bg.white/80"
-                : "border-emerald-200 text-slate-600 hover:bg-emerald-50"
-            }`}
-          >
-            Limpieza del hogar
-          </a>
-          <a
-            href="/catalog?cat=personal"
-            className={`rounded-full border px-3 py-1 ${
-              category === "personal"
-                ? "border-emerald-500 text-emerald-700 bg.white/80"
-                : "border-emerald-200 text-slate-600 hover:bg-emerald-50"
-            }`}
-          >
-            Limpieza personal
-          </a>
+          <form action="/catalog" className="space-y-5">
+            {/* BUSCAR */}
+            <div className="space-y-2">
+              <p className="text-xs font-semibold text-emerald-800">
+                Buscar
+              </p>
+              <input
+                type="text"
+                name="q"
+                defaultValue={searchParams?.q ?? ""}
+                placeholder="Ej: cloro..."
+                className="
+                  w-full rounded-full border border-emerald-200 bg-white 
+                  px-3 py-1.5 text-xs text-black 
+                  placeholder:text-emerald-600
+                  outline-none focus:border-emerald-500
+                "
+              />
+            </div>
+
+            <hr className="border-emerald-200" />
+
+            {/* CATEGORÍA */}
+            <div className="space-y-2">
+              <p className="text-xs font-semibold text-emerald-800">
+                Categoría
+              </p>
+
+              <div className="flex flex-col gap-2 text-xs text-black">
+                {[
+                  { key: "", label: "Todos" },
+                  { key: "cloro", label: "Cloro y desinfectantes" },
+                  { key: "hogar", label: "Limpieza del hogar" },
+                  { key: "personal", label: "Limpieza personal" },
+                ].map((opt) => (
+                  <label
+                    key={opt.key}
+                    className="flex items-center gap-2 cursor-pointer"
+                  >
+                    <input
+                      type="radio"
+                      name="cat"
+                      value={opt.key}
+                      defaultChecked={
+                        category === opt.key || (!category && opt.key === "")
+                      }
+                      className="h-3 w-3 text-emerald-600"
+                    />
+                    <span>{opt.label}</span>
+                  </label>
+                ))}
+              </div>
+            </div>
+
+            <hr className="border-emerald-200" />
+
+            {/* TIPO DE PRODUCTO */}
+            <div className="space-y-2">
+              <p className="text-xs font-semibold text-emerald-800">
+                Tipo de producto
+              </p>
+
+              <label className="flex items-center gap-2 text-xs text-black cursor-pointer">
+                <input
+                  type="checkbox"
+                  name="featured"
+                  value="1"
+                  defaultChecked={onlyFeatured}
+                  className="h-3 w-3 text-emerald-600"
+                />
+                <span>Solo destacados</span>
+              </label>
+
+              <label className="flex items-center gap-2 text-xs text-black cursor-pointer">
+                <input
+                  type="checkbox"
+                  name="onSale"
+                  value="1"
+                  defaultChecked={onlyOnSale}
+                  className="h-3 w-3 text-emerald-600"
+                />
+                <span>Solo en oferta</span>
+              </label>
+            </div>
+
+            <hr className="border-emerald-200" />
+
+            {/* PRECIO con slider */}
+            <PriceRangeFilter
+              maxLimit={globalMaxPrice}
+              initialMaxPrice={
+                searchParams?.maxPrice
+                  ? Number(searchParams.maxPrice)
+                  : undefined
+              }
+            />
+
+            {/* BOTONES */}
+            <div className="flex items-center justify-between pt-1">
+              <button
+                type="submit"
+                className="
+                  rounded-full bg-emerald-600 
+                  px-4 py-1.5 text-xs font-medium text-white 
+                  hover:bg-emerald-500 transition
+                "
+              >
+                Aplicar filtros
+              </button>
+
+              <a
+                href="/catalog"
+                className="text-[11px] text-emerald-700 hover:text-emerald-900"
+              >
+                Limpiar
+              </a>
+            </div>
+          </form>
+        </aside>
+
+
+        {/* ───────────── CONTENIDO PRINCIPAL ───────────── */}
+        <div className="flex-1 space-y-6">
+          {/* Contador */}
+          <p className="text-xs text-slate-400">
+            {totalCount === 0
+              ? "No se encontraron productos."
+              : `Mostrando ${totalCount} producto${
+                  totalCount === 1 ? "" : "s"
+                }`}
+          </p>
+
+          {/* Carrusel arriba */}
+          {featuredProducts.length > 0 && (
+            <OffersCarousel
+              products={featuredProducts}
+              title="Ofertas y productos destacados"
+              subtitle="Selección especial para ti"
+            />
+          )}
+
+          {/* Grid abajo */}
+          <div className="space-y-2">
+            <h2 className="text-lg font-semibold text-emerald-400">
+              Productos disponibles
+            </h2>
+
+            <ProductGrid products={filteredProducts} />
+          </div>
         </div>
       </div>
-
-      {/* Info de resultados */}
-      <p className="text-xs text-slate-500">
-        {totalCount === 0
-          ? "No se encontraron productos para estos filtros."
-          : `Mostrando ${totalCount} producto${
-              totalCount === 1 ? "" : "s"
-            } disponibles.`}
-      </p>
-
-      {/* Carrusel de ofertas / destacados */}
-      {featuredProducts.length > 0 && (
-        <OffersCarousel
-          products={featuredProducts}
-          title="Ofertas y productos destacados"
-          subtitle="Productos seleccionados manualmente (isFeatured) o a modo de ejemplo. Más adelante podrás gestionarlos desde el panel admin."
-        />
-      )}
-
-      {/* Todo el catálogo filtrado */}
-      {filteredProducts.length > 0 && (
-        <div className="space-y-3">
-          <h2 className="text-lg font-semibold text-emerald-800">
-            Todo el catálogo
-          </h2>
-          <ProductGrid products={filteredProducts} />
-        </div>
-      )}
     </section>
   );
 }

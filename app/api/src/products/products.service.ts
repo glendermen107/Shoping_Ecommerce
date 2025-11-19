@@ -62,7 +62,7 @@ export class ProductsService {
       throw new NotFoundException(`Product with ID "${id}" not found`);
     }
 
-    // Si se incluye categoryId en la actualización, cargamos la nueva categoría
+    // Si se incluye categoryId en la actualización, buscar y asignar la categoría correspondiente
     if (updateProductDto.categoryId) {
       const category = await this.categoryRepository.findOneBy({
         id: updateProductDto.categoryId,

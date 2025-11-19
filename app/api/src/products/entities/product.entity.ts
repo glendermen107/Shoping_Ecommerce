@@ -15,6 +15,9 @@ export class Product {
   @Column({ type: 'varchar', length: 255 })
   name: string;
 
+  @Column({ type: 'varchar', length: 255, unique: true })
+  slug: string;
+
   @Column({ type: 'text' })
   description: string;
 
@@ -33,4 +36,22 @@ export class Product {
   })
   @JoinColumn({ name: 'category_id' })
   category: Category;
+
+    // --- NUEVOS CAMPOS PARA OFERTAS / CARRUSEL ---
+  @Column({ type: 'boolean', name: 'is_featured', default: false })
+  isFeatured: boolean;
+
+  @Column({ type: 'boolean', name: 'is_on_sale', default: false })
+  isOnSale: boolean;
+
+  @Column({ type: 'int', name: 'discount_percent', nullable: true })
+  discountPercent: number | null;
+
+  // Relación con categoría
+  @ManyToOne(() => Category, (category) => category.products, {
+    onDelete: 'SET NULL',
+    nullable: true,
+  })
+  @JoinColumn({ name: 'category_id' })
+  category: Category | null;
 }

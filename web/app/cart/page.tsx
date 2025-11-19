@@ -3,7 +3,13 @@
 
 import { useEffect, useState } from "react";
 import Link from "next/link";
-import { getCart, updateQuantity, removeFromCart, clearCart, getCartTotals } from "../../lib/cart";
+import {
+  getCart,
+  updateQuantity,
+  removeFromCart,
+  clearCart,
+  getCartTotals,
+} from "../../lib/cart";
 import type { CartItem } from "../../lib/types";
 
 export default function CartPage() {
@@ -38,7 +44,7 @@ export default function CartPage() {
       {!cartItems.length ? (
         <p>
           Tu carrito está vacío.{" "}
-          <Link href="/catalog" className="underline">
+          <Link href="/catalog" className="underline text-emerald-700">
             Ver catálogo
           </Link>
         </p>
@@ -48,16 +54,17 @@ export default function CartPage() {
             {cartItems.map((item) => (
               <li
                 key={item.productId}
-                className="flex items-center justify-between rounded-lg border p-3"
+                className="flex items-center justify-between rounded-lg border border-emerald-100 bg-white/90 p-3 shadow-sm"
               >
                 <div>
-                  <p className="font-medium">{item.name}</p>
-                  <p className="text-sm text-neutral-400">
+                  <p className="font-medium text-slate-800">{item.name}</p>
+                  <p className="text-sm text-neutral-500">
                     ${item.price.toLocaleString()}
                   </p>
                 </div>
 
                 <div className="flex items-center gap-3">
+                  {/* cantidad: ahora visible en modo claro */}
                   <input
                     type="number"
                     min={1}
@@ -68,11 +75,23 @@ export default function CartPage() {
                         Number(event.target.value)
                       )
                     }
-                    className="w-16 rounded border px-2 py-1 bg-black"
+                    className="
+                      w-16 rounded-md border border-emerald-200 bg-white
+                      px-2 py-1 text-sm text-slate-800
+                      outline-none focus:border-emerald-500
+                    "
                   />
+
+                  {/* botón Eliminar con hover rojo suave */}
                   <button
+                    type="button"
                     onClick={() => handleRemove(item.productId)}
-                    className="text-red-400 hover:text-red-300 text-sm"
+                    className="
+                      text-xs font-medium text-rose-500
+                      rounded-md px-2 py-1
+                      hover:text-rose-700 hover:bg-rose-50
+                      transition
+                    "
                   >
                     Eliminar
                   </button>
@@ -81,27 +100,43 @@ export default function CartPage() {
             ))}
           </ul>
 
-          <div className="flex items-center justify-between border-t pt-4">
+          <div className="flex items-center justify-between border-t border-emerald-100 pt-4">
             <div>
-              <p className="text-lg">
+              <p className="text-lg text-slate-800">
                 Subtotal:{" "}
-                <b>${totalAmount.toLocaleString()}</b>{" "}
+                <b>${totalAmount.toLocaleString()}</b>
               </p>
-              <p className="text-sm text-neutral-400">
+              <p className="text-sm text-neutral-500">
                 {totalQuantity} ítem{totalQuantity !== 1 && "s"}
               </p>
             </div>
 
             <div className="flex gap-2">
+              {/* Vaciar carrito */}
               <button
+                type="button"
                 onClick={handleClear}
-                className="rounded-md border px-4 py-2 text-sm"
+                className="
+                  rounded-full border border-rose-300
+                  px-4 py-2 text-sm font-medium
+                  text-rose-600
+                  hover:bg-rose-50 hover:border-rose-400 hover:text-rose-700
+                  transition
+                "
               >
                 Vaciar carrito
               </button>
+
+              {/* Ir al pago */}
               <Link
                 href="/checkout"
-                className="rounded-md border px-4 py-2 text-sm bg-white text-black"
+                className="
+                  rounded-full bg-emerald-600
+                  px-5 py-2 text-sm font-medium
+                  text-white
+                  hover:bg-emerald-500 hover:shadow-md
+                  transition
+                "
               >
                 Ir al pago
               </Link>

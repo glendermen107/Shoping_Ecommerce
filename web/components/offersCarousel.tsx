@@ -1,7 +1,7 @@
 // web/components/offersCarousel.tsx
 "use client";
 
-import { useRef } from "react";
+import { useEffect, useState } from "react";
 import type { Product } from "../lib/types";
 import ProductCard from "./productCard";
 
@@ -16,32 +16,45 @@ export default function OffersCarousel({
   title = "Ofertas y productos destacados",
   subtitle = "Selección especial de productos en oferta o destacados.",
 }: OffersCarouselProps) {
-  const containerRef = useRef<HTMLDivElement | null>(null);
+  const visibleCount = 3;
+  const enableCarousel = products.length > visibleCount;
 
-  const scrollBy = (direction: "left" | "right") => {
-    const container = containerRef.current;
-    if (!container) return;
+  const [index, setIndex] = useState(0);
 
-    const cardWidth = container.firstElementChild
-      ? (container.firstElementChild as HTMLElement).clientWidth
-      : 260;
+  const maxIndex = enableCarousel ? products.length - visibleCount : 0;
 
-    const amount = cardWidth * 1.2;
-
-    container.scrollBy({
-      left: direction === "left" ? -amount : amount,
-      behavior: "smooth",
-    });
+  const handleNext = () => {
+    if (!enableCarousel) return;
+    setIndex((prev) => (prev >= maxIndex ? 0 : prev + 1));
   };
 
+  const handlePrev = () => {
+    if (!enableCarousel) return;
+    setIndex((prev) => (prev <= 0 ? maxIndex : prev - 1));
+  };
+
+  // Auto-slide cada 5 segundos
+  useEffect(() => {
+    if (!enableCarousel) return;
+
+    const id = setInterval(() => {
+      setIndex((prev) => (prev >= maxIndex ? 0 : prev + 1));
+    }, 5000);
+
+    return () => clearInterval(id);
+  }, [enableCarousel, maxIndex]);
+
   if (!products.length) return null;
+
+  // Cada paso mueve 1/visibleCount del ancho total
+  const offsetPercent = enableCarousel ? (index * 100) / visibleCount : 0;
 
   return (
     <section className="space-y-3">
       {/* Título + controles */}
-      <div className="flex items-center justify-between gap-2">
+      <div className="flex items-center justify-between gap-2 max-w-6xl mx-auto">
         <div>
-          <h2 className="text-lg font-semibold text-emerald-800">
+          <h2 className="text-lg font-semibold text-emerald-500">
             {title}
           </h2>
           {subtitle && (
@@ -52,36 +65,42 @@ export default function OffersCarousel({
         <div className="flex items-center gap-2">
           <button
             type="button"
-            onClick={() => scrollBy("left")}
-            className="h-8 w-8 rounded-full border border-emerald-300 bg-white text-emerald-700 text-sm hover:bg-emerald-50 transition"
-            aria-label="Desplazar a la izquierda"
+            onClick={handlePrev}
+            className="h-8 w-8 rounded-full border border-emerald-400 bg-white text-emerald-500 text-sm hover:bg-emerald-500 hover:text-white transition"
+            aria-label="Anterior"
           >
             ‹
           </button>
           <button
             type="button"
-            onClick={() => scrollBy("right")}
-            className="h-8 w-8 rounded-full border border-emerald-300 bg-white text-emerald-700 text-sm hover:bg-emerald-50 transition"
-            aria-label="Desplazar a la derecha"
+            onClick={handleNext}
+            className="h-8 w-8 rounded-full border border-emerald-400 bg-white text-emerald-500 text-sm hover:bg-emerald-500 hover:text-white transition"
+            aria-label="Siguiente"
           >
             ›
           </button>
         </div>
       </div>
 
-      {/* Carrusel horizontal */}
-      <div
-        ref={containerRef}
-        className="flex gap-4 overflow-x-auto pb-2 scroll-smooth snap-x snap-mandatory"
-      >
-        {products.map((p) => (
+      {/* Carrusel: 3 visibles, mueve de a 1 */}
+      <div className="relative max-w-6xl mx-auto">
+        <div className="overflow-hidden">
           <div
-            key={p.id}
-            className="min-w-[230px] max-w-xs snap-start flex-shrink-0"
+            className="flex transition-transform duration-500 ease-out"
+            style={{
+              transform: `translateX(-${offsetPercent}%)`,
+            }}
           >
-            <ProductCard p={p} />
+            {products.map((p) => (
+              <div
+                key={p.id}
+                className="basis-1/3 flex-shrink-0 pr-4"
+              >
+                <ProductCard p={p} />
+              </div>
+            ))}
           </div>
-        ))}
+        </div>
       </div>
     </section>
   );

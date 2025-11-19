@@ -1,80 +1,73 @@
+// web/components/navbar/navbar.tsx
 "use client";
 
 import Link from "next/link";
-import { useEffect, useState } from "react";
+import Image from "next/image";
 import { usePathname } from "next/navigation";
-import { getCart, getCartTotals } from "../../lib/cart";
+import { COMPANY } from "../../lib/companyInfo";
 
-const navLinks = [
+const links = [
   { href: "/", label: "Inicio" },
   { href: "/catalog", label: "Catálogo" },
-  { href: "/contact", label: "Contacto" },
-  { href: "/admin", label: "Admin" },
+  { href: "/contacto", label: "Contacto" },
+  { href: "/faq", label: "Preguntas frecuentes" },
 ];
 
 export default function Navbar() {
   const pathname = usePathname();
-  const [cartCount, setCartCount] = useState(0);
-
-  useEffect(() => {
-    const cart = getCart();
-    const { totalQuantity } = getCartTotals(cart);
-    setCartCount(totalQuantity);
-  }, []);
 
   return (
-    <header className="flex items-center justify-between py-4 border-b border-emerald-200">
-      {/* Logo / Marca */}
-      <Link href="/" className="text-xl font-semibold text-emerald-700">
-        MiTienda
-        <span className="ml-1 text-xs font-normal text-emerald-500">
-          · Limpieza
-        </span>
-      </Link>
-
-      {/* Navegación principal */}
-      <nav className="flex items-center gap-6 text-sm">
-        {navLinks.map((link) => {
-          const isActive =
-            link.href === "/"
-              ? pathname === "/"
-              : pathname.startsWith(link.href);
-
-          return (
-            <Link
-              key={link.href}
-              href={link.href}
-              className={`transition ${
-                isActive
-                  ? "font-medium text-emerald-700"
-                  : "text-slate-600 hover:text-emerald-700"
-              }`}
-            >
-              {link.label}
-            </Link>
-          );
-        })}
-
-        <span className="h-4 w-px bg-emerald-200" />
-
-        {/* Link de Ingreso */}
-        <Link
-          href="/auth/login"
-          className="text-sm text-slate-700 hover:text-emerald-700"
-        >
-          Ingresar
+    <header className="border-b border-emerald-100 bg-white/80 backdrop-blur">
+      <nav className="flex items-center justify-between px-4 lg:px-8 py-3">
+        {/* Logo + marca */}
+        <Link href="/" className="flex items-center gap-2">
+          <Image
+            src="/logo.jpeg"
+            alt={COMPANY.brandName}
+            width={40}
+            height={40}
+            className="rounded-full"
+          />
+          <div className="flex flex-col leading-tight">
+            <span className="text-sm font-semibold text-emerald-700">
+              {COMPANY.brandName}
+            </span>
+            <span className="text-[11px] text-emerald-500">
+              Productos de limpieza profesional
+            </span>
+          </div>
         </Link>
 
-        {/* Carrito con contador */}
-        <Link
-          href="/cart"
-          className="flex items-center gap-2 rounded-full border border-emerald-300 bg-white/70 px-3 py-1 text-sm hover:bg-emerald-50 transition"
-        >
-          <span>Carrito</span>
-          <span className="inline-flex min-w-[1.5rem] items-center justify-center rounded-full bg-emerald-600 text-white text-xs">
-            {cartCount}
-          </span>
-        </Link>
+        {/* Links */}
+        <div className="flex items-center gap-6 text-sm">
+          {links.map((link) => {
+            const active = pathname === link.href;
+            return (
+              <Link
+                key={link.href}
+                href={link.href}
+                className={`transition ${
+                  active
+                    ? "text-emerald-700 font-semibold"
+                    : "text-slate-600 hover:text-emerald-600"
+                }`}
+              >
+                {link.label}
+              </Link>
+            );
+          })}
+
+          {/* Botón carrito (si ya lo tenías, adapta esta parte) */}
+          <Link
+            href="/cart"
+            className="inline-flex items-center gap-2 rounded-full border border-emerald-300 bg-emerald-50 px-3 py-1 text-xs font-medium text-emerald-700 hover:bg-emerald-100 transition"
+          >
+            Carrito
+            <span className="inline-flex h-5 w-5 items-center justify-center rounded-full bg-emerald-600 text-[10px] font-bold text-white">
+              0
+            </span>
+          </Link>
+        </div>
       </nav>
     </header>
   );
