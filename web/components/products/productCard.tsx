@@ -1,5 +1,5 @@
 import Link from "next/link";
-import type { Product } from "../lib/types";
+import type { Product } from "../../lib/types";
 import AddToCartButton from "./addToCartButton";
 
 // Formateo CLP

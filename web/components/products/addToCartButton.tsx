@@ -2,8 +2,8 @@
 "use client";
 
 import { useState } from "react";
-import type { Product } from "../lib/types";
-import { addToCart } from "../lib/cart";
+import type { Product } from "../../lib/types";
+import { addToCart } from "../../lib/cart";
 
 type AddToCartButtonProps = {
   product: Product;

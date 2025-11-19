@@ -2,8 +2,8 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import type { Product } from "../lib/types";
-import ProductCard from "./productCard";
+import type { Product } from "../../lib/types";
+import ProductCard from "../products/productCard";
 
 type OffersCarouselProps = {
   products: Product[];

@@ -1,4 +1,4 @@
-import type { Product } from "../lib/types";
+import type { Product } from "../../lib/types";
 import ProductCard from "./productCard";
 
 export default function ProductGrid({ products }: { products: Product[] }) {

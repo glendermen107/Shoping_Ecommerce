@@ -1,6 +1,6 @@
-import ProductGrid from "../../components/productGrid";
-import OffersCarousel from "../../components/offersCarousel";
-import PriceRangeFilter from "../../components/priceRangeFilter";
+import ProductGrid from "../../components/products/productGrid";
+import OffersCarousel from "../../components/carusell/offersCarousel";
+import PriceRangeFilter from "../../components/carusell/priceRangeFilter";
 import { fetchProducts } from "../../lib/api";
 
 type CatalogPageProps = {

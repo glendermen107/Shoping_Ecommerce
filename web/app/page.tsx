@@ -1,7 +1,7 @@
 // web/app/page.tsx
 import Link from "next/link";
-import OffersCarousel from "../components/offersCarousel";
-import ProductGrid from "../components/productGrid";
+import OffersCarousel from "../components/carusell/offersCarousel";
+import ProductGrid from "../components/products/productGrid";
 import { fetchProducts } from "../lib/api";
 
 export default async function HomePage() {
@@ -14,6 +14,7 @@ export default async function HomePage() {
   return (
     <section className="space-y-10">
       {/* HERO PRINCIPAL */}
+      
       <div className="rounded-3xl border border-emerald-200 bg-gradient-to-r from-emerald-50 via-white to-emerald-50 px-6 py-8 shadow-sm">
         <div className="grid gap-6 lg:grid-cols-2 items-center">
           {/* Texto */}
