@@ -1,7 +1,7 @@
 // web/app/product/[slug]/page.tsx
 import Link from "next/link";
 import { fetchProductBySlug } from "../../../lib/api";
-import AddToCartButton from "../../../components/addToCartButton";
+import AddToCartButton from "../../../components/products/addToCartButton";
 
 type ProductPageProps = {
   params: { slug: string };
