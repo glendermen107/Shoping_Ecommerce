@@ -28,7 +28,8 @@ export default function ProductCard({ p }: { p: Product }) {
     : "Producto de limpieza.";
 
   return (
-    <article className="flex flex-col rounded-xl border border-emerald-100 bg-white shadow-sm hover:shadow-md hover:border-emerald-300 transition">
+    <article className="flex flex-col w-full h-full rounded-xl border border-emerald-100 bg-white shadow-sm hover:shadow-md hover:border-emerald-300 transition">
+
       
       {/* Imagen */}
       <Link href={`/product/${p.slug}`} className="block overflow-hidden rounded-t-xl relative">

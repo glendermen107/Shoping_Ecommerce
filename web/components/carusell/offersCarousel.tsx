@@ -1,7 +1,6 @@
-// web/components/offersCarousel.tsx
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import type { Product } from "../../lib/types";
 import ProductCard from "../products/productCard";
 
@@ -9,72 +8,89 @@ type OffersCarouselProps = {
   products: Product[];
   title?: string;
   subtitle?: string;
+  autoPlayIntervalMs?: number;
 };
 
 export default function OffersCarousel({
   products,
   title = "Ofertas y productos destacados",
-  subtitle = "Selección especial de productos en oferta o destacados.",
+  subtitle = "Selección especial para ti",
+  autoPlayIntervalMs = 6000,
 }: OffersCarouselProps) {
-  const visibleCount = 3;
-  const enableCarousel = products.length > visibleCount;
+  const [currentIndex, setCurrentIndex] = useState(0);
+  const [itemsPerPage, setItemsPerPage] = useState(4);
 
-  const [index, setIndex] = useState(0);
+  const total = products.length;
+  if (!total) return null;
 
-  const maxIndex = enableCarousel ? products.length - visibleCount : 0;
-
-  const handleNext = () => {
-    if (!enableCarousel) return;
-    setIndex((prev) => (prev >= maxIndex ? 0 : prev + 1));
-  };
-
-  const handlePrev = () => {
-    if (!enableCarousel) return;
-    setIndex((prev) => (prev <= 0 ? maxIndex : prev - 1));
-  };
-
-  // Auto-slide cada 5 segundos
+  // ───── RESPONSIVE: decidir cuántos ítems mostrar ─────
   useEffect(() => {
-    if (!enableCarousel) return;
+    const updateItems = () => {
+      const w = window.innerWidth;
 
-    const id = setInterval(() => {
-      setIndex((prev) => (prev >= maxIndex ? 0 : prev + 1));
-    }, 5000);
+      if (w < 480) {
+        setItemsPerPage(1);      // teléfonos pequeños
+      } else if (w < 768) {
+        setItemsPerPage(2);      // teléfonos grandes / phablets
+      } else if (w < 1280) {
+        setItemsPerPage(3);      // tablets / notebooks
+      } else {
+        setItemsPerPage(4);      // escritorio grande
+      }
+    };
 
+    updateItems();
+    window.addEventListener("resize", updateItems);
+    return () => window.removeEventListener("resize", updateItems);
+  }, []);
+
+  const safeItemsPerPage = Math.min(itemsPerPage, total);
+
+  // ───── Navegación ─────
+  const goNext = () => setCurrentIndex((prev) => (prev + 1) % total);
+  const goPrev = () => setCurrentIndex((prev) => (prev - 1 + total) % total);
+
+  useEffect(() => {
+    const id = setInterval(goNext, autoPlayIntervalMs);
     return () => clearInterval(id);
-  }, [enableCarousel, maxIndex]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [total, autoPlayIntervalMs]);
 
-  if (!products.length) return null;
-
-  // Cada paso mueve 1/visibleCount del ancho total
-  const offsetPercent = enableCarousel ? (index * 100) / visibleCount : 0;
+  // ───── Ventana visible ─────
+  const visibleProducts = useMemo(() => {
+    const result: Product[] = [];
+    for (let i = 0; i < safeItemsPerPage; i++) {
+      const idx = (currentIndex + i) % total;
+      result.push(products[idx]);
+    }
+    return result;
+  }, [products, currentIndex, safeItemsPerPage, total]);
 
   return (
     <section className="space-y-3">
-      {/* Título + controles */}
-      <div className="flex items-center justify-between gap-2 max-w-6xl mx-auto">
+      {/* Encabezado */}
+      <div className="flex items-center justify-between max-w-6xl mx-auto px-1">
         <div>
-          <h2 className="text-lg font-semibold text-emerald-500">
-            {title}
-          </h2>
+          <h2 className="text-lg font-semibold text-emerald-800">{title}</h2>
           {subtitle && (
             <p className="text-xs text-slate-500">{subtitle}</p>
           )}
         </div>
 
-        <div className="flex items-center gap-2">
+        {/* Controles desktop/tablet */}
+        <div className="hidden sm:flex items-center gap-2">
           <button
             type="button"
-            onClick={handlePrev}
-            className="h-8 w-8 rounded-full border border-emerald-400 bg-white text-emerald-500 text-sm hover:bg-emerald-500 hover:text-white transition"
+            onClick={goPrev}
+            className="flex h-7 w-7 items-center justify-center rounded-full border border-emerald-200 text-emerald-700 hover:bg-emerald-50 transition"
             aria-label="Anterior"
           >
             ‹
           </button>
           <button
             type="button"
-            onClick={handleNext}
-            className="h-8 w-8 rounded-full border border-emerald-400 bg-white text-emerald-500 text-sm hover:bg-emerald-500 hover:text-white transition"
+            onClick={goNext}
+            className="flex h-7 w-7 items-center justify-center rounded-full border border-emerald-200 text-emerald-700 hover:bg-emerald-50 transition"
             aria-label="Siguiente"
           >
             ›
@@ -82,24 +98,41 @@ export default function OffersCarousel({
         </div>
       </div>
 
-      {/* Carrusel: 3 visibles, mueve de a 1 */}
+      {/* Carrusel */}
       <div className="relative max-w-6xl mx-auto">
         <div className="overflow-hidden">
-          <div
-            className="flex transition-transform duration-500 ease-out"
-            style={{
-              transform: `translateX(-${offsetPercent}%)`,
-            }}
-          >
-            {products.map((p) => (
+          <div className="flex gap-4">
+            {visibleProducts.map((p) => (
               <div
                 key={p.id}
-                className="basis-1/3 flex-shrink-0 pr-4"
+                style={{ flex: `0 0 ${100 / safeItemsPerPage}%` }}
+                className="min-w-0"
               >
+                {/* IMPORTANTE: ProductCard debe respetar w-full */}
                 <ProductCard p={p} />
               </div>
             ))}
           </div>
+        </div>
+
+        {/* Controles móviles flotantes */}
+        <div className="sm:hidden absolute -right-1 -top-9 flex items-center gap-2">
+          <button
+            type="button"
+            onClick={goPrev}
+            className="flex h-7 w-7 items-center justify-center rounded-full border border-emerald-200 bg-white/80 text-emerald-700 hover:bg-emerald-50 transition"
+            aria-label="Anterior"
+          >
+            ‹
+          </button>
+          <button
+            type="button"
+            onClick={goNext}
+            className="flex h-7 w-7 items-center justify-center rounded-full border border-emerald-200 bg-white/80 text-emerald-700 hover:bg-emerald-50 transition"
+            aria-label="Siguiente"
+          >
+            ›
+          </button>
         </div>
       </div>
     </section>
