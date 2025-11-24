@@ -1,9 +1,9 @@
-// web/components/addToCartButton.tsx
+// web/components/products/addToCartButton.tsx
 "use client";
 
 import { useState } from "react";
 import type { Product } from "../../lib/types";
-import { addToCart } from "../../lib/cart";
+import { useCart } from "../cart/cartContext";
 
 type AddToCartButtonProps = {
   product: Product;
@@ -11,22 +11,26 @@ type AddToCartButtonProps = {
 
 export default function AddToCartButton({ product }: AddToCartButtonProps) {
   const [isAdding, setIsAdding] = useState(false);
+  const { addItem } = useCart();
 
   const handleClick = () => {
     setIsAdding(true);
-    addToCart(product, 1);
+    addItem(product, 1);
     setTimeout(() => setIsAdding(false), 400);
   };
 
   return (
-  <button
-    onClick={handleClick}
-    disabled={isAdding}
-    className="rounded-md bg-emerald-600 px-4 py-2 text-sm font-medium text-white hover:bg-emerald-700 disabled:opacity-60 disabled:cursor-not-allowed transition"
-  >
-    {isAdding ? "Agregando..." : "Agregar al carrito"}
-  </button>
-
+    <button
+      onClick={handleClick}
+      disabled={isAdding}
+      className="
+        rounded-md bg-emerald-600 px-4 py-2 text-sm font-semibold text-white
+        disabled:cursor-not-allowed disabled:opacity-60
+        hover:bg-emerald-700
+        transition
+      "
+    >
+      {isAdding ? "Agregando..." : "Agregar al carrito"}
+    </button>
   );
 }
-

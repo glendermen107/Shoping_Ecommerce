@@ -24,18 +24,26 @@ export default function OffersCarousel({
   if (!total) return null;
 
   // ───── RESPONSIVE: decidir cuántos ítems mostrar ─────
-  useEffect(() => {
+ // ───── RESPONSIVE: decidir cuántos ítems mostrar ─────
+    useEffect(() => {
     const updateItems = () => {
       const w = window.innerWidth;
 
       if (w < 480) {
-        setItemsPerPage(1);      // teléfonos pequeños
+        // teléfonos pequeños
+        setItemsPerPage(1);
       } else if (w < 768) {
-        setItemsPerPage(2);      // teléfonos grandes / phablets
-      } else if (w < 1280) {
-        setItemsPerPage(3);      // tablets / notebooks
+        // teléfonos grandes / phablets
+        setItemsPerPage(2);
+      } else if (w < 1024) {
+        // tablets
+        setItemsPerPage(3);
+      } else if (w < 1440) {
+        // notebooks / monitores estándar
+        setItemsPerPage(4);
       } else {
-        setItemsPerPage(4);      // escritorio grande
+        // pantallas grandes
+        setItemsPerPage(6);
       }
     };
 
