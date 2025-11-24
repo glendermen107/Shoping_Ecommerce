@@ -1,64 +1,96 @@
-// web/app/auth/register/page.tsx
 "use client";
 
 import { FormEvent, useState } from "react";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
+import { useAuth } from "../../../components/auth/authContext";
 
 export default function RegisterPage() {
-  const [isSubmitting, setIsSubmitting] = useState(false);
+  const { register } = useAuth();
+  const router = useRouter();
 
-  const handleSubmit = (event: FormEvent<HTMLFormElement>) => {
+  const [name, setName] = useState("");
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [error, setError] = useState("");
+
+  const handleSubmit = async (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
+    setError("");
     setIsSubmitting(true);
 
-    // Aquí después llamas al backend para registrar usuario
-    setTimeout(() => {
-      setIsSubmitting(false);
-      alert("Registro simulado ✅ (aquí iría la lógica real)");
-    }, 800);
+    const ok = await register(name, email, password);
+    setIsSubmitting(false);
+
+    if (!ok) {
+      setError("El correo ya está registrado.");
+      return;
+    }
+
+    router.push("/auth/login");
   };
 
   return (
-    <section className="max-w-sm space-y-4">
-      <h1 className="text-2xl font-semibold">Crear cuenta</h1>
+    <section className="mx-auto max-w-sm space-y-4">
+      <h1 className="text-xl font-semibold">Crear cuenta</h1>
+      <p className="text-sm text-neutral-400">
+        Regístrate para seguir tus pedidos y recibir ofertas.
+      </p>
 
-      <form onSubmit={handleSubmit} className="space-y-3">
+      {error && (
+        <p className="rounded border border-red-500 bg-red-950/40 px-3 py-2 text-xs text-red-200">
+          {error}
+        </p>
+      )}
+
+      <form onSubmit={handleSubmit} className="space-y-3 text-sm">
         <div>
-          <label className="block text-sm mb-1">Nombre</label>
+          <label className="mb-1 block text-xs text-neutral-400">
+            Nombre completo
+          </label>
           <input
-            name="name"
             required
-            className="w-full rounded-md border bg-black px-3 py-2"
-            placeholder="Sebastián Herrera"
+            className="w-full rounded border border-neutral-700 bg-neutral-950 px-3 py-2 outline-none focus:border-emerald-500"
+            value={name}
+            onChange={(e) => setName(e.target.value)}
+            placeholder="Ej: Sebastián Herrera"
           />
         </div>
 
         <div>
-          <label className="block text-sm mb-1">Correo electrónico</label>
+          <label className="mb-1 block text-xs text-neutral-400">
+            Correo electrónico
+          </label>
           <input
             type="email"
-            name="email"
             required
-            className="w-full rounded-md border bg-black px-3 py-2"
-            placeholder="correo@example.com"
+            className="w-full rounded border border-neutral-700 bg-neutral-950 px-3 py-2 outline-none focus:border-emerald-500"
+            value={email}
+            onChange={(e) => setEmail(e.target.value)}
+            placeholder="tucorreo@ejemplo.cl"
           />
         </div>
 
         <div>
-          <label className="block text-sm mb-1">Contraseña</label>
+          <label className="mb-1 block text-xs text-neutral-400">
+            Contraseña
+          </label>
           <input
             type="password"
-            name="password"
             required
-            className="w-full rounded-md border bg-black px-3 py-2"
-            placeholder="••••••••"
+            minLength={6}
+            className="w-full rounded border border-neutral-700 bg-neutral-950 px-3 py-2 outline-none focus:border-emerald-500"
+            value={password}
+            onChange={(e) => setPassword(e.target.value)}
+            placeholder="Mínimo 6 caracteres"
           />
         </div>
 
         <button
           type="submit"
           disabled={isSubmitting}
-          className="w-full rounded-md border px-4 py-2 bg_white text-black disabled:opacity-60 bg-white"
+          className="mt-2 w-full rounded bg-emerald-600 py-2 text-sm font-semibold text-white hover:bg-emerald-500 disabled:cursor-not-allowed disabled:opacity-60"
         >
           {isSubmitting ? "Creando cuenta..." : "Registrarme"}
         </button>
@@ -66,7 +98,7 @@ export default function RegisterPage() {
 
       <p className="text-sm text-neutral-400">
         ¿Ya tienes cuenta?{" "}
-        <Link href="/auth/login" className="underline">
+        <Link href="/auth/login" className="text-emerald-400 underline">
           Ingresar
         </Link>
       </p>

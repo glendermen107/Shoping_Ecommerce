@@ -1,47 +1,74 @@
-// web/app/auth/login/page.tsx
 "use client";
 
 import { FormEvent, useState } from "react";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
+import { useAuth } from "../../../components/auth/authContext";
 
 export default function LoginPage() {
-  const [isSubmitting, setIsSubmitting] = useState(false);
+  const { login } = useAuth();
+  const router = useRouter();
 
-  const handleSubmit = (event: FormEvent<HTMLFormElement>) => {
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [error, setError] = useState("");
+
+  const handleSubmit = async (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
+    setError("");
     setIsSubmitting(true);
 
-    // Aquí después llamas al backend (Nest) con fetch o axios
-    setTimeout(() => {
-      // Simulación de login
-      setIsSubmitting(false);
-      alert("Login simulado ✅ (aquí iría la lógica real)");
-    }, 700);
+    const ok = await login(email, password);
+    setIsSubmitting(false);
+
+    if (!ok) {
+      setError("Correo o contraseña incorrectos.");
+      return;
+    }
+
+    // después puedes leer el rol y mandar a /admin o /profile
+    router.push("/profile");
   };
 
   return (
-    <section className="max-w-sm space-y-4">
-      <h1 className="text-2xl font-semibold">Ingresar</h1>
+    <section className="mx-auto max-w-sm space-y-4">
+      <h1 className="text-xl font-semibold">Ingresar</h1>
+      <p className="text-sm text-neutral-400">
+        Accede a tu cuenta para ver tus compras y estado de pedidos.
+      </p>
 
-      <form onSubmit={handleSubmit} className="space-y-3">
+      {error && (
+        <p className="rounded border border-red-500 bg-red-950/40 px-3 py-2 text-xs text-red-200">
+          {error}
+        </p>
+      )}
+
+      <form onSubmit={handleSubmit} className="space-y-3 text-sm">
         <div>
-          <label className="block text-sm mb-1">Correo electrónico</label>
+          <label className="mb-1 block text-xs text-neutral-400">
+            Correo electrónico
+          </label>
           <input
             type="email"
-            name="email"
             required
-            className="w-full rounded-md border bg-black px-3 py-2"
-            placeholder="correo@example.com"
+            className="w-full rounded border border-neutral-700 bg-neutral-950 px-3 py-2 outline-none focus:border-emerald-500"
+            value={email}
+            onChange={(e) => setEmail(e.target.value)}
+            placeholder="tucorreo@ejemplo.cl"
           />
         </div>
 
         <div>
-          <label className="block text-sm mb-1">Contraseña</label>
+          <label className="mb-1 block text-xs text-neutral-400">
+            Contraseña
+          </label>
           <input
             type="password"
-            name="password"
             required
-            className="w-full rounded-md border bg-black px-3 py-2"
+            className="w-full rounded border border-neutral-700 bg-neutral-950 px-3 py-2 outline-none focus:border-emerald-500"
+            value={password}
+            onChange={(e) => setPassword(e.target.value)}
             placeholder="••••••••"
           />
         </div>
@@ -49,7 +76,7 @@ export default function LoginPage() {
         <button
           type="submit"
           disabled={isSubmitting}
-          className="w-full rounded-md border px-4 py-2 bg-white text-black disabled:opacity-60"
+          className="mt-2 w-full rounded bg-emerald-600 py-2 text-sm font-semibold text-white hover:bg-emerald-500 disabled:cursor-not-allowed disabled:opacity-60"
         >
           {isSubmitting ? "Ingresando..." : "Ingresar"}
         </button>
@@ -57,7 +84,7 @@ export default function LoginPage() {
 
       <p className="text-sm text-neutral-400">
         ¿No tienes cuenta?{" "}
-        <Link href="/auth/register" className="underline">
+        <Link href="/auth/register" className="text-emerald-400 underline">
           Crear cuenta
         </Link>
       </p>
