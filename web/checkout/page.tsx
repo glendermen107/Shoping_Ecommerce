@@ -37,7 +37,7 @@ export default function CheckoutPage() {
       <section className="space-y-4">
         <h1 className="text-2xl font-semibold">Checkout</h1>
         <p>Tu carrito está vacío.</p>
-        <Link href="/catalog" className="underline">
+        <Link href="/catalogo" className="underline">
           Volver al catálogo
         </Link>
       </section>

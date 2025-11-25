@@ -1,9 +1,9 @@
 import ProductGrid from "../../components/products/productGrid";
-import OffersCarousel from "../../components/carusell/offersCarousel";
-import PriceRangeFilter from "../../components/carusell/priceRangeFilter";
+import OffersCarousel from "../../components/carousel/offersCarousel";
+import PriceRangeFilter from "../../components/carousel/priceRangeFilter";
 import { fetchProducts } from "../../lib/api";
 
-type CatalogPageProps = {
+type catalogoPageProps = {
   searchParams?: {
     q?: string;
     cat?: string;
@@ -14,7 +14,7 @@ type CatalogPageProps = {
   };
 };
 
-export default async function CatalogPage({ searchParams }: CatalogPageProps) {
+export default async function catalogoPage({ searchParams }: catalogoPageProps) {
   const search = searchParams?.q?.toLowerCase() ?? "";
   const category = searchParams?.cat as
     | "cloro"
@@ -112,7 +112,7 @@ export default async function CatalogPage({ searchParams }: CatalogPageProps) {
             </p>
           </div>
 
-          <form action="/catalog" className="space-y-5">
+          <form action="/catalogo" className="space-y-5">
             {/* BUSCAR */}
             <div className="space-y-2">
               <p className="text-xs font-semibold text-emerald-800">
@@ -223,7 +223,7 @@ export default async function CatalogPage({ searchParams }: CatalogPageProps) {
               </button>
 
               <a
-                href="/catalog"
+                href="/catalogo"
                 className="text-[11px] text-emerald-700 hover:text-emerald-900"
               >
                 Limpiar

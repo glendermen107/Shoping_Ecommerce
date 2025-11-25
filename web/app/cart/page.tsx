@@ -30,7 +30,7 @@ export default function CartPage() {
       {!cartItems.length ? (
         <p>
           Tu carrito está vacío.{" "}
-          <Link href="/catalog" className="text-emerald-700 underline">
+          <Link href="/catalogo" className="text-emerald-700 underline">
             Ver catálogo
           </Link>
         </p>

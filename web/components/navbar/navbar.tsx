@@ -9,7 +9,7 @@ import { useCart } from "../cart/cartContext";
 
 const links = [
   { href: "/", label: "Inicio" },
-  { href: "/catalog", label: "Catálogo" },
+  { href: "/catalogo", label: "Catálogo" },
   { href: "/faq", label: "Preguntas frecuentes" },
   { href: "/contacto", label: "Contacto" },
 ];

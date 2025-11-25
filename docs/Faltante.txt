@@ -11,7 +11,7 @@ Creaciion de perfil de usuarios
 
 
 *Pagina inicio*
-nvar con catalogo(cocina, baños, aseo, insumos, etc.)
+nvar con catalogoo(cocina, baños, aseo, insumos, etc.)
 carrusel 
 productos
 

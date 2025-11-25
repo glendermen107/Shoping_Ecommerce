@@ -1,6 +1,6 @@
 // web/app/page.tsx
 import Link from "next/link";
-import OffersCarousel from "../components/carusell/offersCarousel";
+import OffersCarousel from "../components/carousel/offersCarousel";
 import ProductGrid from "../components/products/productGrid";
 import { fetchProducts } from "../lib/api";
 
@@ -35,7 +35,7 @@ export default async function HomePage() {
 
             <div className="flex flex-wrap gap-3 pt-2">
               <Link
-                href="/catalog"
+                href="/catalogo"
                 className="rounded-full bg-emerald-600 px-5 py-2 text-sm font-medium text-white hover:bg-emerald-500 transition"
               >
                 Ver catálogo
@@ -148,7 +148,7 @@ export default async function HomePage() {
               Explora el catálogo
             </h2>
             <Link
-              href="/catalog"
+              href="/catalogo"
               className="text-xs font-medium text-emerald-700 hover:text-emerald-900 underline"
             >
               Ver todos los productos

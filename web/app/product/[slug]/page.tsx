@@ -26,7 +26,7 @@ export default async function ProductPage({ params }: ProductPageProps) {
     <section className="space-y-6">
       {/* Migas de pan */}
       <nav className="text-xs text-neutral-500">
-        <Link href="/catalog" className="underline">
+        <Link href="/catalogo" className="underline">
           Catálogo
         </Link>{" "}
         / <span className="text-neutral-700">{product.name}</span>
