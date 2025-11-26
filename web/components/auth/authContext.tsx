@@ -1,17 +1,26 @@
 "use client";
 
-import { createContext, useContext, useState, useEffect } from "react";
+import {
+  createContext,
+  useContext,
+  useEffect,
+  useState,
+  type ReactNode,
+} from "react";
 
-export type User = {
+export type LocalUser = {
   id: string;
   name: string;
   email: string;
-  role: "user" | "admin";
+  password: string;
+  role: "admin" | "user";
 };
 
 type AuthContextType = {
-  user: User | null;
+  user: LocalUser | null;
   loading: boolean;
+  isAuthenticated: boolean;
+  isAdmin: boolean;
   login: (email: string, password: string) => Promise<boolean>;
   register: (name: string, email: string, password: string) => Promise<boolean>;
   logout: () => void;
@@ -19,76 +28,96 @@ type AuthContextType = {
 
 const AuthContext = createContext<AuthContextType | null>(null);
 
-export function AuthProvider({ children }: { children: React.ReactNode }) {
-  const [user, setUser] = useState<User | null>(null);
+export function AuthProvider({ children }: { children: ReactNode }) {
+  const [user, setUser] = useState<LocalUser | null>(null);
   const [loading, setLoading] = useState(true);
 
-  // cargar usuario desde localStorage
+  // Cargar usuario guardado en localStorage al iniciar
   useEffect(() => {
+    if (typeof window === "undefined") return;
     const saved = localStorage.getItem("authUser");
     if (saved) {
-      setUser(JSON.parse(saved));
+      try {
+        setUser(JSON.parse(saved));
+      } catch {
+        localStorage.removeItem("authUser");
+      }
     }
     setLoading(false);
   }, []);
 
   const login = async (email: string, password: string) => {
-    // Simulación: En producción, aquí se llama al backend
-    const savedUsers = JSON.parse(localStorage.getItem("users") || "[]");
+    if (typeof window === "undefined") return false;
 
-    const found = savedUsers.find(
-      (u: any) => u.email === email && u.password === password
+    const raw = localStorage.getItem("users");
+    const users: LocalUser[] = raw ? JSON.parse(raw) : [];
+
+    const found = users.find(
+      (u) => u.email === email && u.password === password
     );
 
-    if (found) {
-      const loggedUser: User = {
-        id: found.id,
-        email: found.email,
-        name: found.name,
-        role: found.role,
-      };
-      localStorage.setItem("authUser", JSON.stringify(loggedUser));
-      setUser(loggedUser);
-      return true;
-    }
+    if (!found) return false;
 
-    return false;
+    localStorage.setItem("authUser", JSON.stringify(found));
+    setUser(found);
+    return true;
   };
 
   const register = async (name: string, email: string, password: string) => {
-    const users = JSON.parse(localStorage.getItem("users") || "[]");
+    if (typeof window === "undefined") return false;
 
-    if (users.find((u: any) => u.email === email)) {
-      return false; // correo ya registrado
+    const stored = localStorage.getItem("users");
+    const users: LocalUser[] = stored ? JSON.parse(stored) : [];
+
+    // correo ya registrado
+    if (users.some((u) => u.email === email)) {
+      return false;
     }
 
-    const newUser = {
+    // primer usuario o correo especial → admin
+    const role: "admin" | "user" =
+      users.length === 0 || email === "cleaningsale04@gmail.com"
+        ? "admin"
+        : "user";
+
+    const newUser: LocalUser = {
       id: crypto.randomUUID(),
       name,
       email,
-      role: "user", // siempre usuario normal
-      password, // se elimina cuando pasemos a backend real
+      password,
+      role,
     };
 
     users.push(newUser);
     localStorage.setItem("users", JSON.stringify(users));
+    // lo dejamos registrado pero no logueado automáticamente
     return true;
   };
 
   const logout = () => {
-    localStorage.removeItem("authUser");
+    if (typeof window !== "undefined") {
+      localStorage.removeItem("authUser");
+    }
     setUser(null);
   };
 
-  return (
-    <AuthContext.Provider value={{ user, loading, login, register, logout }}>
-      {children}
-    </AuthContext.Provider>
-  );
+  const value: AuthContextType = {
+    user,
+    loading,
+    isAuthenticated: !!user,
+    isAdmin: !!user && user.role === "admin",
+    login,
+    register,
+    logout,
+  };
+
+  return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
 }
 
 export function useAuth() {
   const ctx = useContext(AuthContext);
-  if (!ctx) throw new Error("useAuth debe usarse dentro de AuthProvider");
+  if (!ctx) {
+    throw new Error("useAuth debe usarse dentro de <AuthProvider>");
+  }
   return ctx;
 }
