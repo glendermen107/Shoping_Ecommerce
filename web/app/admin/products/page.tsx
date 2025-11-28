@@ -251,89 +251,75 @@ export default function AdminProductsPage() {
           No hay productos que coincidan con el filtro.
         </p>
       ) : (
-        <div className="overflow-x-auto rounded-xl border border-neutral-800">
-          <table className="min-w-full text-left text-sm">
-            <thead className="bg-neutral-950/70 text-xs uppercase text-neutral-400">
+        <div className="overflow-x-auto rounded-3xl border border-border bg-card shadow-sm">
+          <table className="min-w-full text-left text-base">
+            <thead className="bg-secondary/60 text-xs uppercase text-muted-foreground">
               <tr>
-                <th className="px-4 py-3">Nombre</th>
-                <th className="px-4 py-3 hidden sm:table-cell">Slug</th>
-                <th className="px-4 py-3 hidden md:table-cell">Categoría</th>
-                <th className="px-4 py-3">Precio</th>
-                <th className="px-4 py-3 hidden md:table-cell">Stock</th>
-                <th className="px-4 py-3">Estado</th>
-                <th className="px-4 py-3 text-right">Acciones</th>
+                <th className="px-5 py-3">Nombre</th>
+                <th className="px-5 py-3 hidden sm:table-cell">Slug</th>
+                <th className="px-5 py-3 hidden md:table-cell">Categoría</th>
+                <th className="px-5 py-3">Precio</th>
+                <th className="px-5 py-3 hidden md:table-cell">Stock</th>
+                <th className="px-5 py-3">Estado</th>
+                <th className="px-5 py-3 text-right">Acciones</th>
               </tr>
             </thead>
             <tbody>
               {filteredProducts.map((p) => (
                 <tr
                   key={p.id}
-                  className="border-t border-neutral-800/80 text-neutral-100"
+                  className="border-t border-border/70 hover:bg-muted/60"
                 >
-                  <td className="px-4 py-3">
+                  <td className="px-5 py-3">
                     <div className="flex flex-col">
-                      <span className="font-medium">{p.name}</span>
+                      <span className="font-medium text-foreground">
+                        {p.name}
+                      </span>
                       {p.isOnSale && (
-                        <span className="text-xs text-emerald-400">
+                        <span className="text-sm text-emerald-600">
                           En oferta {p.discountPercent ?? 0}% OFF
                         </span>
                       )}
                     </div>
                   </td>
 
-                  <td className="px-4 py-3 hidden sm:table-cell text-xs text-neutral-400">
+                  <td className="px-5 py-3 hidden sm:table-cell text-sm text-muted-foreground">
                     {p.slug}
                   </td>
 
-                  <td className="px-4 py-3 hidden md:table-cell text-xs text-neutral-400">
-                    {p.categoryName ??
-                      (p.categoryKey === "cloro"
-                        ? "Cloro"
-                        : p.categoryKey === "hogar"
-                        ? "Hogar"
-                        : p.categoryKey === "personal"
-                        ? "Cuidado personal"
-                        : "-")}
+                  <td className="px-5 py-3 hidden md:table-cell text-sm text-muted-foreground">
+                    {/* ...categoría */}
                   </td>
 
-                  <td className="px-4 py-3">
+                  <td className="px-5 py-3 font-semibold">
                     ${p.price.toLocaleString("es-CL")}
                   </td>
 
-                  <td className="px-4 py-3 hidden md:table-cell text-sm text-neutral-300">
+                  <td className="px-5 py-3 hidden md:table-cell text-base">
                     {p.stock ?? 0}
                   </td>
 
-                  <td className="px-4 py-3">
+                  <td className="px-5 py-3">
                     <span
-                      className={`inline-flex items-center rounded-full px-2 py-1 text-xs font-semibold ${
+                      className={`inline-flex items-center rounded-full px-3 py-1 text-xs font-semibold ${
                         p.active
-                          ? "bg-emerald-900/40 text-emerald-300"
-                          : "bg-neutral-800 text-neutral-400"
+                          ? "bg-emerald-100 text-emerald-800"
+                          : "bg-neutral-200 text-neutral-800"
                       }`}
                     >
                       {p.active ? "Activo" : "Inactivo"}
                     </span>
                   </td>
 
-                  <td className="px-4 py-3 text-right">
+                  <td className="px-5 py-3 text-right">
                     <div className="flex justify-end gap-2">
-                      <button
-                        onClick={() => openEditForm(p)}
-                        className="rounded-full border border-neutral-700 px-3 py-1 text-xs hover:border-emerald-500 hover:text-emerald-300"
-                      >
+                      <button className="rounded-full border border-border px-4 py-1.5 text-sm hover:border-emerald-500 hover:text-emerald-700">
                         Editar
                       </button>
-                      <button
-                        onClick={() => toggleActive(p.id)}
-                        className="rounded-full border border-neutral-700 px-3 py-1 text-xs hover:border-amber-500 hover:text-amber-300"
-                      >
+                      <button className="rounded-full border border-border px-4 py-1.5 text-sm hover:border-amber-500 hover:text-amber-700">
                         {p.active ? "Desactivar" : "Activar"}
                       </button>
-                      <button
-                        onClick={() => removeProduct(p.id)}
-                        className="rounded-full border border-red-500/70 px-3 py-1 text-xs text-red-300 hover:bg-red-950/40"
-                      >
+                      <button className="rounded-full border border-red-500/70 px-4 py-1.5 text-sm text-red-600 hover:bg-red-50">
                         Eliminar
                       </button>
                     </div>
@@ -343,6 +329,7 @@ export default function AdminProductsPage() {
             </tbody>
           </table>
         </div>
+
       )}
 
       {/* Formulario de crear/editar */}

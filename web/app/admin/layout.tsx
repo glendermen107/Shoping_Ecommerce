@@ -16,27 +16,30 @@ function AdminSidebar() {
   const pathname = usePathname();
 
   return (
-    <aside className="hidden h-screen w-64 flex-col border-r border-sidebar-border bg-sidebar text-sidebar-foreground md:flex">
+    <aside className="hidden h-screen w-72 flex-col border-r border-sidebar-border bg-sidebar text-sidebar-foreground md:flex">
       {/* Header sidebar */}
-      <div className="flex items-center justify-between border-b border-sidebar-border px-5 py-4">
+      <div className="flex items-center justify-between border-b border-sidebar-border px-6 py-5">
         <div>
-          <p className="text-sm font-semibold tracking-tight">Cleaning Admin</p>
-          <p className="text-[11px] text-muted-foreground">
+          <p className="text-base font-semibold tracking-tight">
+            Cleaning Admin
+          </p>
+          <p className="mt-0.5 text-sm text-muted-foreground">
             Panel de control · tweakcn
           </p>
         </div>
       </div>
 
       {/* Nav items */}
-      <nav className="flex-1 space-y-1 px-3 py-4 text-sm">
+      <nav className="flex-1 space-y-1 px-3 py-5 text-base">
         {navItems.map((item) => {
           const active = pathname === item.href;
+
           return (
             <Link
               key={item.href}
               href={item.href}
               className={[
-                "flex items-center justify-between rounded-full px-3 py-2 text-xs font-medium transition-colors",
+                "flex items-center justify-between rounded-full px-4 py-2.5 font-medium transition-colors",
                 active
                   ? "bg-sidebar-primary text-sidebar-primary-foreground"
                   : "text-sidebar-foreground hover:bg-sidebar-accent hover:text-sidebar-accent-foreground",
@@ -49,7 +52,7 @@ function AdminSidebar() {
       </nav>
 
       {/* Footer sidebar */}
-      <div className="border-t border-sidebar-border px-4 py-3 text-[11px] text-muted-foreground">
+      <div className="border-t border-sidebar-border px-5 py-4 text-sm text-muted-foreground">
         Cleaning Line GP · Admin
       </div>
     </aside>
@@ -68,19 +71,19 @@ export default function AdminLayout({
         <AdminSidebar />
 
         {/* Contenido principal */}
-        <main className="flex-1 flex flex-col">
+        <main className="flex flex-1 flex-col">
           {/* Barra superior */}
-          <header className="flex h-14 items-center justify-between border-b border-border bg-background/80 px-4 backdrop-blur md:px-6">
+          <header className="flex h-16 items-center justify-between border-b border-border bg-background/80 px-4 backdrop-blur md:px-6">
             <div>
-              <p className="text-[10px] uppercase tracking-[0.2em] text-muted-foreground">
+              <p className="text-sm uppercase tracking-[0.18em] text-muted-foreground">
                 Panel de administración
               </p>
-              <p className="text-sm font-medium leading-none">
+              <p className="text-3xl font-semibold leading-tight">
                 Dashboard general
               </p>
             </div>
 
-            <div className="flex items-center gap-2 text-xs text-muted-foreground">
+            <div className="flex items-center gap-2 text-base font-medium text-foreground">
               <span>Admin</span>
             </div>
           </header>

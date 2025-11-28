@@ -13,7 +13,7 @@
   --secondary: oklch(0.9540 0.0063 255.4755);
   --secondary-foreground: oklch(0.1344 0 0);
   --muted: oklch(0.9702 0 0);
-  --muted-foreground: oklch(0.4386 0 0);
+  --muted-foreground: oklch(0.25 0 0);
   --accent: oklch(0.9393 0.0288 266.3680);
   --accent-foreground: oklch(0.5445 0.1903 259.4848);
   --destructive: oklch(0.6290 0.1902 23.0704);
@@ -169,6 +169,15 @@
   --tracking-widest: calc(var(--tracking-normal) + 0.1em);
 }
 
-body {
-  letter-spacing: var(--tracking-normal);
+
+@layer base {
+  html {
+    font-size: 18px; /* antes era 16 */
+  }
+
+  body {
+    letter-spacing: var(--tracking-normal);
+    @apply bg-background text-foreground;
+    font-family: system-ui, -apple-system, BlinkMacSystemFont, "Inter", sans-serif;
+  }
 }
