@@ -1,0 +1,79 @@
+# Page snapshot
+
+```yaml
+- generic [active] [ref=e1]:
+  - generic [ref=e2]:
+    - banner [ref=e3]:
+      - navigation [ref=e4]:
+        - link "Cleaning Line GP Cleaning Line GP Productos de limpieza profesional" [ref=e5] [cursor=pointer]:
+          - /url: /
+          - img "Cleaning Line GP" [ref=e6]
+          - generic [ref=e7]:
+            - paragraph [ref=e8]: Cleaning Line GP
+            - paragraph [ref=e9]: Productos de limpieza profesional
+        - generic [ref=e10]:
+          - link "Inicio" [ref=e11] [cursor=pointer]:
+            - /url: /
+          - link "Catálogo" [ref=e12] [cursor=pointer]:
+            - /url: /catalogo
+          - link "Preguntas frecuentes" [ref=e13] [cursor=pointer]:
+            - /url: /faq
+          - link "Contacto" [ref=e14] [cursor=pointer]:
+            - /url: /contacto
+          - button "Modo oscuro" [ref=e15]:
+            - generic [ref=e16]: Modo oscuro
+            - generic [ref=e17]: 🌙
+          - link "🛒 Carrito 1" [ref=e18] [cursor=pointer]:
+            - /url: /cart
+            - text: 🛒 Carrito
+            - generic [ref=e19]: "1"
+    - main [ref=e20]:
+      - generic [ref=e21]:
+        - heading "Carrito" [level=1] [ref=e22]
+        - list [ref=e23]:
+          - listitem [ref=e24]:
+            - generic [ref=e25]:
+              - paragraph [ref=e26]: Cloro hogar 1L
+              - paragraph [ref=e27]: $2,490
+              - paragraph [ref=e28]:
+                - text: "Subtotal:"
+                - generic [ref=e29]: $2,490
+            - generic [ref=e30]:
+              - spinbutton [ref=e31]: "1"
+              - button "Eliminar" [ref=e32]
+        - generic [ref=e33]:
+          - generic [ref=e34]:
+            - paragraph [ref=e35]:
+              - text: "Subtotal:"
+              - generic [ref=e36]: $2,490
+            - paragraph [ref=e37]: 1 ítem
+          - generic [ref=e38]:
+            - button "Vaciar carrito" [ref=e39]
+            - link "Ir al pago" [ref=e40] [cursor=pointer]:
+              - /url: /checkout
+    - contentinfo [ref=e41]:
+      - generic [ref=e42]:
+        - generic [ref=e43]:
+          - generic [ref=e44]:
+            - img "Cleaning Line GP" [ref=e45]
+            - paragraph [ref=e46]: Cleaning Line GP · Productos de limpieza
+          - paragraph [ref=e47]: Venta y distribución de productos de limpieza para hogar y empresas.
+          - paragraph [ref=e48]: © 2025 Cleaning Line GP — Todos los derechos reservados.
+        - generic [ref=e49]:
+          - paragraph [ref=e50]: Atención y despacho
+          - paragraph [ref=e51]: "Ubicación: Pudahuel, sector Laguna Azul con La Estrella."
+          - paragraph [ref=e52]: "Días de trabajo: lunes a domingo."
+          - paragraph [ref=e53]: Despacho en días hábiles y retiro en tienda (hasta sábado).
+          - paragraph [ref=e54]: Expansión gradual a distintas comunas.
+        - generic [ref=e55]:
+          - paragraph [ref=e56]: Contacto
+          - paragraph [ref=e57]: "WhatsApp: +56 9 0000 0000"
+          - paragraph [ref=e58]:
+            - text: "Correo:"
+            - link "contacto@tulimpieza.cl" [ref=e59] [cursor=pointer]:
+              - /url: mailto:contacto@tulimpieza.cl
+          - paragraph [ref=e60]: Facturación disponible para personas naturales y empresas.
+  - button "Open Next.js Dev Tools" [ref=e66] [cursor=pointer]:
+    - img [ref=e67]
+  - alert [ref=e70]
+```

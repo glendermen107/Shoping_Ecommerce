@@ -1,0 +1,57 @@
+# Page snapshot
+
+```yaml
+- generic [active] [ref=e1]:
+  - generic [ref=e2]:
+    - banner [ref=e3]:
+      - navigation [ref=e4]:
+        - link "Cleaning Line GP Cleaning Line GP Productos de limpieza profesional" [ref=e5] [cursor=pointer]:
+          - /url: /
+          - img "Cleaning Line GP" [ref=e6]
+          - generic [ref=e7]:
+            - paragraph [ref=e8]: Cleaning Line GP
+            - paragraph [ref=e9]: Productos de limpieza profesional
+        - generic [ref=e10]:
+          - link "Inicio" [ref=e11] [cursor=pointer]:
+            - /url: /
+          - link "Catálogo" [ref=e12] [cursor=pointer]:
+            - /url: /catalogo
+          - link "Preguntas frecuentes" [ref=e13] [cursor=pointer]:
+            - /url: /faq
+          - link "Contacto" [ref=e14] [cursor=pointer]:
+            - /url: /contacto
+          - button "Modo oscuro" [ref=e15]:
+            - generic [ref=e16]: Modo oscuro
+            - generic [ref=e17]: 🌙
+          - link "🛒 Carrito 0" [ref=e18] [cursor=pointer]:
+            - /url: /cart
+            - text: 🛒 Carrito
+            - generic [ref=e19]: "0"
+    - main [ref=e20]:
+      - paragraph [ref=e24]: Cargando...
+    - contentinfo [ref=e25]:
+      - generic [ref=e26]:
+        - generic [ref=e27]:
+          - generic [ref=e28]:
+            - img "Cleaning Line GP" [ref=e29]
+            - paragraph [ref=e30]: Cleaning Line GP · Productos de limpieza
+          - paragraph [ref=e31]: Venta y distribución de productos de limpieza para hogar y empresas.
+          - paragraph [ref=e32]: © 2025 Cleaning Line GP — Todos los derechos reservados.
+        - generic [ref=e33]:
+          - paragraph [ref=e34]: Atención y despacho
+          - paragraph [ref=e35]: "Ubicación: Pudahuel, sector Laguna Azul con La Estrella."
+          - paragraph [ref=e36]: "Días de trabajo: lunes a domingo."
+          - paragraph [ref=e37]: Despacho en días hábiles y retiro en tienda (hasta sábado).
+          - paragraph [ref=e38]: Expansión gradual a distintas comunas.
+        - generic [ref=e39]:
+          - paragraph [ref=e40]: Contacto
+          - paragraph [ref=e41]: "WhatsApp: +56 9 0000 0000"
+          - paragraph [ref=e42]:
+            - text: "Correo:"
+            - link "contacto@tulimpieza.cl" [ref=e43] [cursor=pointer]:
+              - /url: mailto:contacto@tulimpieza.cl
+          - paragraph [ref=e44]: Facturación disponible para personas naturales y empresas.
+  - button "Open Next.js Dev Tools" [ref=e50] [cursor=pointer]:
+    - img [ref=e51]
+  - alert [ref=e54]
+```

@@ -9,7 +9,6 @@ export default function RegisterPage() {
   const { register } = useAuth();
   const router = useRouter();
 
-  const [name, setName] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -20,11 +19,11 @@ export default function RegisterPage() {
     setError("");
     setIsSubmitting(true);
 
-    const ok = await register(name, email, password);
+    const ok = await register(email, password);
     setIsSubmitting(false);
 
     if (!ok) {
-      setError("El correo ya está registrado.");
+      setError("El correo ya está registrado o hubo un error.");
       return;
     }
 
@@ -45,19 +44,6 @@ export default function RegisterPage() {
       )}
 
       <form onSubmit={handleSubmit} className="space-y-3 text-sm">
-        <div>
-          <label className="mb-1 block text-xs text-neutral-400">
-            Nombre completo
-          </label>
-          <input
-            required
-            className="w-full rounded border border-neutral-700 bg-neutral-950 px-3 py-2 outline-none focus:border-emerald-500"
-            value={name}
-            onChange={(e) => setName(e.target.value)}
-            placeholder="Ej: Sebastián Herrera"
-          />
-        </div>
-
         <div>
           <label className="mb-1 block text-xs text-neutral-400">
             Correo electrónico

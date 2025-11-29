@@ -8,6 +8,7 @@ import { AuthService } from './auth.service';
 import { AuthController } from './auth.controller';
 import { User } from './entities/user.entity';
 import { JwtStrategy } from './strategies/jwt.strategy';
+import { RefreshTokenStrategy } from './strategies/refresh-token.strategy';
 
 @Module({
   imports: [
@@ -24,14 +25,14 @@ import { JwtStrategy } from './strategies/jwt.strategy';
         return {
           secret: secret,
           signOptions: {
-            expiresIn: '24h',
+            expiresIn: configService.get('JWT_EXPIRATION_TIME', '15m'), // Dejar que TS infiera el tipo
           },
         };
       },
     }),
   ],
   controllers: [AuthController],
-  providers: [AuthService, JwtStrategy],
+  providers: [AuthService, JwtStrategy, RefreshTokenStrategy],
   exports: [PassportModule, JwtModule, TypeOrmModule, JwtStrategy],
 })
 export class AuthModule {}

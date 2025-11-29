@@ -5,7 +5,17 @@
   "scripts": {
     "dev": "next dev --turbopack",
     "build": "next build --turbopack",
-    "start": "next start"
+    "start": "next start",
+    "test": "playwright test",
+    "test:ui": "playwright test --ui",
+    "test:headed": "playwright test --headed",
+    "test:debug": "playwright test --debug",
+    "test:report": "playwright show-report",
+    "test:auth": "playwright test auth.spec.ts",
+    "test:catalog": "playwright test catalog.spec.ts",
+    "test:cart": "playwright test cart.spec.ts",
+    "test:checkout": "playwright test checkout.spec.ts",
+    "test:admin": "playwright test admin.spec.ts"
   },
   "dependencies": {
     "next": "15.5.4",
@@ -14,6 +24,7 @@
     "react-dom": "19.1.0"
   },
   "devDependencies": {
+    "@playwright/test": "^1.48.0",
     "@tailwindcss/postcss": "^4",
     "@types/node": "^20",
     "@types/react": "^19",

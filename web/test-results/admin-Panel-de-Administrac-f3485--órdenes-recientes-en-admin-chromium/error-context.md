@@ -1,0 +1,80 @@
+# Page snapshot
+
+```yaml
+- generic [active] [ref=e1]:
+  - generic [ref=e2]:
+    - banner [ref=e3]:
+      - navigation [ref=e4]:
+        - link "Cleaning Line GP Cleaning Line GP Productos de limpieza profesional" [ref=e5] [cursor=pointer]:
+          - /url: /
+          - img "Cleaning Line GP" [ref=e6]
+          - generic [ref=e7]:
+            - paragraph [ref=e8]: Cleaning Line GP
+            - paragraph [ref=e9]: Productos de limpieza profesional
+        - generic [ref=e10]:
+          - link "Inicio" [ref=e11] [cursor=pointer]:
+            - /url: /
+          - link "Catálogo" [ref=e12] [cursor=pointer]:
+            - /url: /catalogo
+          - link "Preguntas frecuentes" [ref=e13] [cursor=pointer]:
+            - /url: /faq
+          - link "Contacto" [ref=e14] [cursor=pointer]:
+            - /url: /contacto
+          - button "Modo oscuro" [ref=e15]:
+            - generic [ref=e16]: Modo oscuro
+            - generic [ref=e17]: 🌙
+          - link "🛒 Carrito 0" [ref=e18] [cursor=pointer]:
+            - /url: /cart
+            - text: 🛒 Carrito
+            - generic [ref=e19]: "0"
+    - main [ref=e20]:
+      - generic [ref=e21]:
+        - heading "Ingresar" [level=1] [ref=e22]
+        - paragraph [ref=e23]: Accede a tu cuenta para ver tus compras y estado de pedidos.
+        - generic [ref=e24]:
+          - generic [ref=e25]:
+            - generic [ref=e26]: Correo electrónico
+            - textbox "tucorreo@ejemplo.cl" [ref=e27]
+          - generic [ref=e28]:
+            - generic [ref=e29]: Contraseña
+            - textbox "••••••••" [ref=e30]
+          - button "Ingresar" [ref=e31]
+        - paragraph [ref=e32]:
+          - text: ¿No tienes cuenta?
+          - link "Crear cuenta" [ref=e33] [cursor=pointer]:
+            - /url: /auth/register
+    - contentinfo [ref=e34]:
+      - generic [ref=e35]:
+        - generic [ref=e36]:
+          - generic [ref=e37]:
+            - img "Cleaning Line GP" [ref=e38]
+            - paragraph [ref=e39]: Cleaning Line GP · Productos de limpieza
+          - paragraph [ref=e40]: Venta y distribución de productos de limpieza para hogar y empresas.
+          - paragraph [ref=e41]: © 2025 Cleaning Line GP — Todos los derechos reservados.
+        - generic [ref=e42]:
+          - paragraph [ref=e43]: Atención y despacho
+          - paragraph [ref=e44]: "Ubicación: Pudahuel, sector Laguna Azul con La Estrella."
+          - paragraph [ref=e45]: "Días de trabajo: lunes a domingo."
+          - paragraph [ref=e46]: Despacho en días hábiles y retiro en tienda (hasta sábado).
+          - paragraph [ref=e47]: Expansión gradual a distintas comunas.
+        - generic [ref=e48]:
+          - paragraph [ref=e49]: Contacto
+          - paragraph [ref=e50]: "WhatsApp: +56 9 0000 0000"
+          - paragraph [ref=e51]:
+            - text: "Correo:"
+            - link "contacto@tulimpieza.cl" [ref=e52] [cursor=pointer]:
+              - /url: mailto:contacto@tulimpieza.cl
+          - paragraph [ref=e53]: Facturación disponible para personas naturales y empresas.
+  - generic [ref=e58] [cursor=pointer]:
+    - button "Open Next.js Dev Tools" [ref=e59]:
+      - img [ref=e60]
+    - generic [ref=e63]:
+      - button "Open issues overlay" [ref=e64]:
+        - generic [ref=e65]:
+          - generic [ref=e66]: "0"
+          - generic [ref=e67]: "1"
+        - generic [ref=e68]: Issue
+      - button "Collapse issues badge" [ref=e69]:
+        - img [ref=e70]
+  - alert [ref=e72]: Ingresar
+```

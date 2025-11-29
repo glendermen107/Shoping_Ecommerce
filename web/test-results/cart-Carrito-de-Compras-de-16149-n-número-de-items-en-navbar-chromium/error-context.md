@@ -1,0 +1,74 @@
+# Page snapshot
+
+```yaml
+- generic [ref=e2]:
+  - banner [ref=e3]:
+    - navigation [ref=e4]:
+      - link "Cleaning Line GP Cleaning Line GP Productos de limpieza profesional" [ref=e5] [cursor=pointer]:
+        - /url: /
+        - img "Cleaning Line GP" [ref=e6]
+        - generic [ref=e7]:
+          - paragraph [ref=e8]: Cleaning Line GP
+          - paragraph [ref=e9]: Productos de limpieza profesional
+      - generic [ref=e10]:
+        - link "Inicio" [ref=e11] [cursor=pointer]:
+          - /url: /
+        - link "Catálogo" [ref=e12] [cursor=pointer]:
+          - /url: /catalogo
+        - link "Preguntas frecuentes" [ref=e13] [cursor=pointer]:
+          - /url: /faq
+        - link "Contacto" [ref=e14] [cursor=pointer]:
+          - /url: /contacto
+        - link "🛒 Carrito 0" [ref=e15] [cursor=pointer]:
+          - /url: /cart
+          - text: 🛒 Carrito
+          - generic [ref=e16]: "0"
+  - main [ref=e17]:
+    - generic [ref=e18]:
+      - navigation [ref=e19]:
+        - link "Catálogo" [ref=e20] [cursor=pointer]:
+          - /url: /catalogo
+        - text: / Detergente líquido 3L
+      - generic [ref=e21]:
+        - img "Detergente líquido 3L" [ref=e23]
+        - generic [ref=e24]:
+          - generic [ref=e25]:
+            - heading "Detergente líquido 3L" [level=1] [ref=e26]
+            - paragraph [ref=e27]: "Categoría: Limpieza del hogar"
+          - generic [ref=e28]:
+            - paragraph [ref=e29]: $5.490
+            - paragraph [ref=e30]: "Stock disponible: 90 unidades"
+          - generic [ref=e31]:
+            - heading "Descripción" [level=2] [ref=e32]
+            - paragraph [ref=e33]: Detergente para ropa, fórmula suave de alta limpieza.
+          - generic [ref=e34]:
+            - paragraph [ref=e35]: 🛻 Despacho disponible. Sobre $50.000 en productos, el envío es gratis.
+            - paragraph [ref=e36]: 📍 Retiro en tienda disponible hasta el sábado. Días de trabajo de lunes a domingo.
+            - paragraph [ref=e37]: Los tiempos y costo final de despacho se confirman al coordinar el pedido.
+          - generic [ref=e38]:
+            - paragraph [ref=e39]: Fichas técnicas y seguridad
+            - paragraph [ref=e40]: Si el producto lo requiere, se pueden adjuntar fichas técnicas u hojas de seguridad (PDF) para descargas futuras.
+          - button "Agregar al carrito" [ref=e42]
+  - contentinfo [ref=e43]:
+    - generic [ref=e44]:
+      - generic [ref=e45]:
+        - generic [ref=e46]:
+          - img "Cleaning Line GP" [ref=e47]
+          - paragraph [ref=e48]: Cleaning Line GP · Productos de limpieza
+        - paragraph [ref=e49]: Venta y distribución de productos de limpieza para hogar y empresas.
+        - paragraph [ref=e50]: © 2025 Cleaning Line GP — Todos los derechos reservados.
+      - generic [ref=e51]:
+        - paragraph [ref=e52]: Atención y despacho
+        - paragraph [ref=e53]: "Ubicación: Pudahuel, sector Laguna Azul con La Estrella."
+        - paragraph [ref=e54]: "Días de trabajo: lunes a domingo."
+        - paragraph [ref=e55]: Despacho en días hábiles y retiro en tienda (hasta sábado).
+        - paragraph [ref=e56]: Expansión gradual a distintas comunas.
+      - generic [ref=e57]:
+        - paragraph [ref=e58]: Contacto
+        - paragraph [ref=e59]: "WhatsApp: +56 9 0000 0000"
+        - paragraph [ref=e60]:
+          - text: "Correo:"
+          - link "contacto@tulimpieza.cl" [ref=e61] [cursor=pointer]:
+            - /url: mailto:contacto@tulimpieza.cl
+        - paragraph [ref=e62]: Facturación disponible para personas naturales y empresas.
+```

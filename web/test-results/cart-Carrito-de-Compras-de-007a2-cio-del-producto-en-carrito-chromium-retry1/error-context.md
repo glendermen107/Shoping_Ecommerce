@@ -1,0 +1,90 @@
+# Page snapshot
+
+```yaml
+- generic [active] [ref=e1]:
+  - generic [ref=e2]:
+    - banner [ref=e3]:
+      - navigation [ref=e4]:
+        - link "Cleaning Line GP Cleaning Line GP Productos de limpieza profesional" [ref=e5] [cursor=pointer]:
+          - /url: /
+          - img "Cleaning Line GP" [ref=e6]
+          - generic [ref=e7]:
+            - paragraph [ref=e8]: Cleaning Line GP
+            - paragraph [ref=e9]: Productos de limpieza profesional
+        - generic [ref=e10]:
+          - link "Inicio" [ref=e11] [cursor=pointer]:
+            - /url: /
+          - link "Catálogo" [ref=e12] [cursor=pointer]:
+            - /url: /catalogo
+          - link "Preguntas frecuentes" [ref=e13] [cursor=pointer]:
+            - /url: /faq
+          - link "Contacto" [ref=e14] [cursor=pointer]:
+            - /url: /contacto
+          - button "Modo oscuro" [ref=e15]:
+            - generic [ref=e16]: Modo oscuro
+            - generic [ref=e17]: 🌙
+          - link "🛒 Carrito 0" [ref=e18] [cursor=pointer]:
+            - /url: /cart
+            - text: 🛒 Carrito
+            - generic [ref=e19]: "0"
+    - main [ref=e20]:
+      - generic [ref=e21]:
+        - navigation [ref=e22]:
+          - link "Catálogo" [ref=e23] [cursor=pointer]:
+            - /url: /catalogo
+          - text: / Cloro hogar 1L
+        - generic [ref=e24]:
+          - img "Cloro hogar 1L" [ref=e26]
+          - generic [ref=e27]:
+            - generic [ref=e28]:
+              - heading "Cloro hogar 1L" [level=1] [ref=e29]
+              - paragraph [ref=e30]: "Categoría: Cloro y desinfectantes"
+            - generic [ref=e31]:
+              - paragraph [ref=e32]: $2.490
+              - paragraph [ref=e33]: "Stock disponible: 120 unidades"
+            - generic [ref=e34]:
+              - heading "Descripción" [level=2] [ref=e35]
+              - paragraph [ref=e36]: Cloro para uso domiciliario, ideal para baños y cocina.
+            - generic [ref=e37]:
+              - paragraph [ref=e38]: 🛻 Despacho disponible. Sobre $50.000 en productos, el envío es gratis.
+              - paragraph [ref=e39]: 📍 Retiro en tienda disponible hasta el sábado. Días de trabajo de lunes a domingo.
+              - paragraph [ref=e40]: Los tiempos y costo final de despacho se confirman al coordinar el pedido.
+            - generic [ref=e41]:
+              - paragraph [ref=e42]: Fichas técnicas y seguridad
+              - paragraph [ref=e43]: Si el producto lo requiere, se pueden adjuntar fichas técnicas u hojas de seguridad (PDF) para descargas futuras.
+            - button "Agregar al carrito" [ref=e45]
+    - contentinfo [ref=e46]:
+      - generic [ref=e47]:
+        - generic [ref=e48]:
+          - generic [ref=e49]:
+            - img "Cleaning Line GP" [ref=e50]
+            - paragraph [ref=e51]: Cleaning Line GP · Productos de limpieza
+          - paragraph [ref=e52]: Venta y distribución de productos de limpieza para hogar y empresas.
+          - paragraph [ref=e53]: © 2025 Cleaning Line GP — Todos los derechos reservados.
+        - generic [ref=e54]:
+          - paragraph [ref=e55]: Atención y despacho
+          - paragraph [ref=e56]: "Ubicación: Pudahuel, sector Laguna Azul con La Estrella."
+          - paragraph [ref=e57]: "Días de trabajo: lunes a domingo."
+          - paragraph [ref=e58]: Despacho en días hábiles y retiro en tienda (hasta sábado).
+          - paragraph [ref=e59]: Expansión gradual a distintas comunas.
+        - generic [ref=e60]:
+          - paragraph [ref=e61]: Contacto
+          - paragraph [ref=e62]: "WhatsApp: +56 9 0000 0000"
+          - paragraph [ref=e63]:
+            - text: "Correo:"
+            - link "contacto@tulimpieza.cl" [ref=e64] [cursor=pointer]:
+              - /url: mailto:contacto@tulimpieza.cl
+          - paragraph [ref=e65]: Facturación disponible para personas naturales y empresas.
+  - generic [ref=e70] [cursor=pointer]:
+    - button "Open Next.js Dev Tools" [ref=e71]:
+      - img [ref=e72]
+    - generic [ref=e75]:
+      - button "Open issues overlay" [ref=e76]:
+        - generic [ref=e77]:
+          - generic [ref=e78]: "0"
+          - generic [ref=e79]: "1"
+        - generic [ref=e80]: Issue
+      - button "Collapse issues badge" [ref=e81]:
+        - img [ref=e82]
+  - alert [ref=e84]
+```

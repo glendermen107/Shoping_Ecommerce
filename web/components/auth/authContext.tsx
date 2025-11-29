@@ -1,20 +1,21 @@
 "use client";
 
 import { createContext, useContext, useState, useEffect } from "react";
+import { loginUser, registerUser, logoutUser, checkAuth } from "../../lib/api";
 
 export type User = {
-  id: string;
-  name: string;
+  id: number;
   email: string;
-  role: "user" | "admin";
+  roles: string[];
 };
 
 type AuthContextType = {
   user: User | null;
   loading: boolean;
   login: (email: string, password: string) => Promise<boolean>;
-  register: (name: string, email: string, password: string) => Promise<boolean>;
-  logout: () => void;
+  register: (email: string, password: string) => Promise<boolean>;
+  logout: () => Promise<void>;
+  isAdmin: () => boolean;
 };
 
 const AuthContext = createContext<AuthContextType | null>(null);
@@ -23,65 +24,84 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [user, setUser] = useState<User | null>(null);
   const [loading, setLoading] = useState(true);
 
-  // cargar usuario desde localStorage
+  // Verificar autenticación al cargar la aplicación
   useEffect(() => {
-    const saved = localStorage.getItem("authUser");
-    if (saved) {
-      setUser(JSON.parse(saved));
-    }
-    setLoading(false);
-  }, []);
+    const initAuth = async () => {
+      try {
+        // Intentar refrescar el token desde la cookie
+        const isAuthenticated = await checkAuth();
 
-  const login = async (email: string, password: string) => {
-    // Simulación: En producción, aquí se llama al backend
-    const savedUsers = JSON.parse(localStorage.getItem("users") || "[]");
-
-    const found = savedUsers.find(
-      (u: any) => u.email === email && u.password === password
-    );
-
-    if (found) {
-      const loggedUser: User = {
-        id: found.id,
-        email: found.email,
-        name: found.name,
-        role: found.role,
-      };
-      localStorage.setItem("authUser", JSON.stringify(loggedUser));
-      setUser(loggedUser);
-      return true;
-    }
-
-    return false;
-  };
-
-  const register = async (name: string, email: string, password: string) => {
-    const users = JSON.parse(localStorage.getItem("users") || "[]");
-
-    if (users.find((u: any) => u.email === email)) {
-      return false; // correo ya registrado
-    }
-
-    const newUser = {
-      id: crypto.randomUUID(),
-      name,
-      email,
-      role: "user", // siempre usuario normal
-      password, // se elimina cuando pasemos a backend real
+        if (isAuthenticated) {
+          // Si el refresh fue exitoso, cargar datos del usuario desde localStorage
+          const savedUser = localStorage.getItem("authUser");
+          if (savedUser) {
+            setUser(JSON.parse(savedUser));
+          }
+        } else {
+          // Si no hay sesión válida, limpiar
+          localStorage.removeItem("authUser");
+          setUser(null);
+        }
+      } catch (error) {
+        console.error("Error initializing auth:", error);
+        localStorage.removeItem("authUser");
+        setUser(null);
+      } finally {
+        setLoading(false);
+      }
     };
 
-    users.push(newUser);
-    localStorage.setItem("users", JSON.stringify(users));
-    return true;
+    initAuth();
+  }, []);
+
+  const login = async (email: string, password: string): Promise<boolean> => {
+    try {
+      const data = await loginUser(email, password);
+
+      // Guardar datos del usuario en memoria y localStorage
+      const userData: User = {
+        id: data.user.id,
+        email: data.user.email,
+        roles: data.user.roles,
+      };
+
+      setUser(userData);
+      localStorage.setItem("authUser", JSON.stringify(userData));
+
+      return true;
+    } catch (error) {
+      console.error("Login error:", error);
+      return false;
+    }
   };
 
-  const logout = () => {
-    localStorage.removeItem("authUser");
-    setUser(null);
+  const register = async (email: string, password: string): Promise<boolean> => {
+    try {
+      await registerUser(email, password);
+      return true;
+    } catch (error) {
+      console.error("Register error:", error);
+      return false;
+    }
+  };
+
+  const logout = async (): Promise<void> => {
+    try {
+      await logoutUser();
+    } catch (error) {
+      console.error("Logout error:", error);
+    } finally {
+      setUser(null);
+      localStorage.removeItem("authUser");
+    }
+  };
+
+  const isAdmin = (): boolean => {
+    return user?.roles?.includes("admin") || false;
   };
 
   return (
-    <AuthContext.Provider value={{ user, loading, login, register, logout }}>
+    <AuthContext.Provider value={{ user, loading, login, register, logout, isAdmin }}>
       {children}
     </AuthContext.Provider>
   );

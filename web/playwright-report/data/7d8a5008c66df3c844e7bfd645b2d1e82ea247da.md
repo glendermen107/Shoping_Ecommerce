@@ -1,0 +1,314 @@
+# Page snapshot
+
+```yaml
+- generic [active] [ref=e1]:
+  - generic [ref=e2]:
+    - banner [ref=e3]:
+      - navigation [ref=e4]:
+        - link "Cleaning Line GP Cleaning Line GP Productos de limpieza profesional" [ref=e5] [cursor=pointer]:
+          - /url: /
+          - img "Cleaning Line GP" [ref=e6]
+          - generic [ref=e7]:
+            - paragraph [ref=e8]: Cleaning Line GP
+            - paragraph [ref=e9]: Productos de limpieza profesional
+        - generic [ref=e10]:
+          - link "Inicio" [ref=e11] [cursor=pointer]:
+            - /url: /
+          - link "Catálogo" [ref=e12] [cursor=pointer]:
+            - /url: /catalogo
+          - link "Preguntas frecuentes" [ref=e13] [cursor=pointer]:
+            - /url: /faq
+          - link "Contacto" [ref=e14] [cursor=pointer]:
+            - /url: /contacto
+          - button "Modo oscuro" [ref=e15]:
+            - generic [ref=e16]: Modo oscuro
+            - generic [ref=e17]: 🌙
+          - link "🛒 Carrito 0" [ref=e18] [cursor=pointer]:
+            - /url: /cart
+            - text: 🛒 Carrito
+            - generic [ref=e19]: "0"
+    - main [ref=e20]:
+      - generic [ref=e21]:
+        - generic [ref=e22]:
+          - heading "Catálogo" [level=1] [ref=e23]
+          - paragraph [ref=e24]: Explora nuestros productos de limpieza para hogar y empresas.
+        - generic [ref=e25]:
+          - complementary [ref=e26]:
+            - generic [ref=e27]:
+              - paragraph [ref=e28]: Filtros
+              - paragraph [ref=e29]: Ajusta los filtros para encontrar el producto que necesitas.
+            - generic [ref=e30]:
+              - generic [ref=e31]:
+                - paragraph [ref=e32]: Buscar
+                - 'textbox "Ej: cloro..." [ref=e33]'
+              - separator [ref=e34]
+              - generic [ref=e35]:
+                - paragraph [ref=e36]: Categoría
+                - generic [ref=e37]:
+                  - generic [ref=e38] [cursor=pointer]:
+                    - radio "Todos" [checked] [ref=e39]
+                    - generic [ref=e40]: Todos
+                  - generic [ref=e41] [cursor=pointer]:
+                    - radio "Cloro y desinfectantes" [ref=e42]
+                    - generic [ref=e43]: Cloro y desinfectantes
+                  - generic [ref=e44] [cursor=pointer]:
+                    - radio "Limpieza del hogar" [ref=e45]
+                    - generic [ref=e46]: Limpieza del hogar
+                  - generic [ref=e47] [cursor=pointer]:
+                    - radio "Limpieza personal" [ref=e48]
+                    - generic [ref=e49]: Limpieza personal
+              - separator [ref=e50]
+              - generic [ref=e51]:
+                - paragraph [ref=e52]: Tipo de producto
+                - generic [ref=e53] [cursor=pointer]:
+                  - checkbox "Solo destacados" [ref=e54]
+                  - generic [ref=e55]: Solo destacados
+                - generic [ref=e56] [cursor=pointer]:
+                  - checkbox "Solo en oferta" [ref=e57]
+                  - generic [ref=e58]: Solo en oferta
+              - separator [ref=e59]
+              - generic [ref=e60]:
+                - generic [ref=e63]: Filtrar por precio
+                - generic [ref=e65]:
+                  - slider [ref=e66]: "6990"
+                  - paragraph [ref=e67]: "Precio: $0 — $6.990"
+              - generic [ref=e68]:
+                - button "Aplicar filtros" [ref=e69]
+                - link "Limpiar" [ref=e70] [cursor=pointer]:
+                  - /url: /catalogo
+          - generic [ref=e71]:
+            - paragraph [ref=e72]: Mostrando 9 productos
+            - generic [ref=e73]:
+              - generic [ref=e74]:
+                - generic [ref=e75]:
+                  - heading "Ofertas y productos destacados" [level=2] [ref=e76]
+                  - paragraph [ref=e77]: Selección especial para ti
+                - generic [ref=e78]:
+                  - button "Anterior" [ref=e79]: ‹
+                  - button "Siguiente" [ref=e80]: ›
+              - generic [ref=e83]:
+                - article [ref=e85]:
+                  - link "Detergente líquido 3L" [ref=e86] [cursor=pointer]:
+                    - /url: /product/detergente-liquido-3l
+                    - img "Detergente líquido 3L" [ref=e87]
+                  - generic [ref=e88]:
+                    - link "Detergente líquido 3L" [ref=e89] [cursor=pointer]:
+                      - /url: /product/detergente-liquido-3l
+                      - heading "Detergente líquido 3L" [level=3] [ref=e90]
+                    - paragraph [ref=e91]: Detergente para ropa, fórmula suave de alta limpieza.
+                    - generic [ref=e92]:
+                      - paragraph [ref=e93]: $5.490
+                      - paragraph [ref=e94]: Despacho disponible. Sobre $50.000, envío gratis.
+                    - button "Agregar al carrito" [ref=e96]
+                - article [ref=e98]:
+                  - link "Alcohol gel 500 ml" [ref=e99] [cursor=pointer]:
+                    - /url: /product/alcohol-gel-500ml
+                    - img "Alcohol gel 500 ml" [ref=e100]
+                  - generic [ref=e101]:
+                    - link "Alcohol gel 500 ml" [ref=e102] [cursor=pointer]:
+                      - /url: /product/alcohol-gel-500ml
+                      - heading "Alcohol gel 500 ml" [level=3] [ref=e103]
+                    - paragraph [ref=e104]: Alcohol gel para uso personal, ideal para oficinas y locales.
+                    - generic [ref=e105]:
+                      - paragraph [ref=e106]: $2.990
+                      - paragraph [ref=e107]: Despacho disponible. Sobre $50.000, envío gratis.
+                    - button "Agregar al carrito" [ref=e109]
+                - article [ref=e111]:
+                  - link "-10% Cloro hogar 1L" [ref=e112] [cursor=pointer]:
+                    - /url: /product/cloro-hogar-1l
+                    - generic [ref=e113]: "-10%"
+                    - img "Cloro hogar 1L" [ref=e114]
+                  - generic [ref=e115]:
+                    - link "Cloro hogar 1L" [ref=e116] [cursor=pointer]:
+                      - /url: /product/cloro-hogar-1l
+                      - heading "Cloro hogar 1L" [level=3] [ref=e117]
+                    - paragraph [ref=e118]: Cloro para uso domiciliario, ideal para baños y cocina.
+                    - generic [ref=e119]:
+                      - generic [ref=e120]:
+                        - generic [ref=e121]: $2.241
+                        - generic [ref=e122]: $2.490
+                      - paragraph [ref=e123]: Despacho disponible. Sobre $50.000, envío gratis.
+                    - button "Agregar al carrito" [ref=e125]
+                - article [ref=e127]:
+                  - link "-15% Cloro industrial 5L" [ref=e128] [cursor=pointer]:
+                    - /url: /product/cloro-industrial-5l
+                    - generic [ref=e129]: "-15%"
+                    - img "Cloro industrial 5L" [ref=e130]
+                  - generic [ref=e131]:
+                    - link "Cloro industrial 5L" [ref=e132] [cursor=pointer]:
+                      - /url: /product/cloro-industrial-5l
+                      - heading "Cloro industrial 5L" [level=3] [ref=e133]
+                    - paragraph [ref=e134]: Cloro concentrado para uso industrial y grandes superficies.
+                    - generic [ref=e135]:
+                      - generic [ref=e136]:
+                        - generic [ref=e137]: $5.942
+                        - generic [ref=e138]: $6.990
+                      - paragraph [ref=e139]: Despacho disponible. Sobre $50.000, envío gratis.
+                    - button "Agregar al carrito" [ref=e141]
+            - generic [ref=e142]:
+              - heading "Productos disponibles" [level=2] [ref=e143]
+              - generic [ref=e144]:
+                - article [ref=e145]:
+                  - link "-10% Cloro hogar 1L" [ref=e146] [cursor=pointer]:
+                    - /url: /product/cloro-hogar-1l
+                    - generic [ref=e147]: "-10%"
+                    - img "Cloro hogar 1L" [ref=e148]
+                  - generic [ref=e149]:
+                    - link "Cloro hogar 1L" [ref=e150] [cursor=pointer]:
+                      - /url: /product/cloro-hogar-1l
+                      - heading "Cloro hogar 1L" [level=3] [ref=e151]
+                    - paragraph [ref=e152]: Cloro para uso domiciliario, ideal para baños y cocina.
+                    - generic [ref=e153]:
+                      - generic [ref=e154]:
+                        - generic [ref=e155]: $2.241
+                        - generic [ref=e156]: $2.490
+                      - paragraph [ref=e157]: Despacho disponible. Sobre $50.000, envío gratis.
+                    - button "Agregar al carrito" [ref=e159]
+                - article [ref=e160]:
+                  - link "-15% Cloro industrial 5L" [ref=e161] [cursor=pointer]:
+                    - /url: /product/cloro-industrial-5l
+                    - generic [ref=e162]: "-15%"
+                    - img "Cloro industrial 5L" [ref=e163]
+                  - generic [ref=e164]:
+                    - link "Cloro industrial 5L" [ref=e165] [cursor=pointer]:
+                      - /url: /product/cloro-industrial-5l
+                      - heading "Cloro industrial 5L" [level=3] [ref=e166]
+                    - paragraph [ref=e167]: Cloro concentrado para uso industrial y grandes superficies.
+                    - generic [ref=e168]:
+                      - generic [ref=e169]:
+                        - generic [ref=e170]: $5.942
+                        - generic [ref=e171]: $6.990
+                      - paragraph [ref=e172]: Despacho disponible. Sobre $50.000, envío gratis.
+                    - button "Agregar al carrito" [ref=e174]
+                - article [ref=e175]:
+                  - link "Desinfectante multiuso 1L" [ref=e176] [cursor=pointer]:
+                    - /url: /product/desinfectante-multiuso-1l
+                    - img "Desinfectante multiuso 1L" [ref=e177]
+                  - generic [ref=e178]:
+                    - link "Desinfectante multiuso 1L" [ref=e179] [cursor=pointer]:
+                      - /url: /product/desinfectante-multiuso-1l
+                      - heading "Desinfectante multiuso 1L" [level=3] [ref=e180]
+                    - paragraph [ref=e181]: Desinfectante aromatizado para pisos, baños y superficies.
+                    - generic [ref=e182]:
+                      - paragraph [ref=e183]: $3.990
+                      - paragraph [ref=e184]: Despacho disponible. Sobre $50.000, envío gratis.
+                    - button "Agregar al carrito" [ref=e186]
+                - article [ref=e187]:
+                  - link "Detergente líquido 3L" [ref=e188] [cursor=pointer]:
+                    - /url: /product/detergente-liquido-3l
+                    - img "Detergente líquido 3L" [ref=e189]
+                  - generic [ref=e190]:
+                    - link "Detergente líquido 3L" [ref=e191] [cursor=pointer]:
+                      - /url: /product/detergente-liquido-3l
+                      - heading "Detergente líquido 3L" [level=3] [ref=e192]
+                    - paragraph [ref=e193]: Detergente para ropa, fórmula suave de alta limpieza.
+                    - generic [ref=e194]:
+                      - paragraph [ref=e195]: $5.490
+                      - paragraph [ref=e196]: Despacho disponible. Sobre $50.000, envío gratis.
+                    - button "Agregar al carrito" [ref=e198]
+                - article [ref=e199]:
+                  - link "Limpiador de pisos 2L" [ref=e200] [cursor=pointer]:
+                    - /url: /product/limpiador-pisos-2l
+                    - img "Limpiador de pisos 2L" [ref=e201]
+                  - generic [ref=e202]:
+                    - link "Limpiador de pisos 2L" [ref=e203] [cursor=pointer]:
+                      - /url: /product/limpiador-pisos-2l
+                      - heading "Limpiador de pisos 2L" [level=3] [ref=e204]
+                    - paragraph [ref=e205]: Limpieza y brillo para pisos cerámicos y flotantes.
+                    - generic [ref=e206]:
+                      - paragraph [ref=e207]: $3.590
+                      - paragraph [ref=e208]: Despacho disponible. Sobre $50.000, envío gratis.
+                    - button "Agregar al carrito" [ref=e210]
+                - article [ref=e211]:
+                  - link "-12% Desengrasante de cocina 1L" [ref=e212] [cursor=pointer]:
+                    - /url: /product/desengrasante-cocina-1l
+                    - generic [ref=e213]: "-12%"
+                    - img "Desengrasante de cocina 1L" [ref=e214]
+                  - generic [ref=e215]:
+                    - link "Desengrasante de cocina 1L" [ref=e216] [cursor=pointer]:
+                      - /url: /product/desengrasante-cocina-1l
+                      - heading "Desengrasante de cocina 1L" [level=3] [ref=e217]
+                    - paragraph [ref=e218]: Desengrasante potente para cocina, campanas y hornos.
+                    - generic [ref=e219]:
+                      - generic [ref=e220]:
+                        - generic [ref=e221]: $3.511
+                        - generic [ref=e222]: $3.990
+                      - paragraph [ref=e223]: Despacho disponible. Sobre $50.000, envío gratis.
+                    - button "Agregar al carrito" [ref=e225]
+                - article [ref=e226]:
+                  - link "Jabón líquido de manos 1L" [ref=e227] [cursor=pointer]:
+                    - /url: /product/jabón-liquido-manos-1l
+                    - img "Jabón líquido de manos 1L" [ref=e228]
+                  - generic [ref=e229]:
+                    - link "Jabón líquido de manos 1L" [ref=e230] [cursor=pointer]:
+                      - /url: /product/jabón-liquido-manos-1l
+                      - heading "Jabón líquido de manos 1L" [level=3] [ref=e231]
+                    - paragraph [ref=e232]: Jabón líquido para manos, suave con la piel.
+                    - generic [ref=e233]:
+                      - paragraph [ref=e234]: $2.990
+                      - paragraph [ref=e235]: Despacho disponible. Sobre $50.000, envío gratis.
+                    - button "Agregar al carrito" [ref=e237]
+                - article [ref=e238]:
+                  - link "Alcohol gel 500 ml" [ref=e239] [cursor=pointer]:
+                    - /url: /product/alcohol-gel-500ml
+                    - img "Alcohol gel 500 ml" [ref=e240]
+                  - generic [ref=e241]:
+                    - link "Alcohol gel 500 ml" [ref=e242] [cursor=pointer]:
+                      - /url: /product/alcohol-gel-500ml
+                      - heading "Alcohol gel 500 ml" [level=3] [ref=e243]
+                    - paragraph [ref=e244]: Alcohol gel para uso personal, ideal para oficinas y locales.
+                    - generic [ref=e245]:
+                      - paragraph [ref=e246]: $2.990
+                      - paragraph [ref=e247]: Despacho disponible. Sobre $50.000, envío gratis.
+                    - button "Agregar al carrito" [ref=e249]
+                - article [ref=e250]:
+                  - link "-8% Toallas desinfectantes (80 unidades)" [ref=e251] [cursor=pointer]:
+                    - /url: /product/toallas-desinfectantes-80u
+                    - generic [ref=e252]: "-8%"
+                    - img "Toallas desinfectantes (80 unidades)" [ref=e253]
+                  - generic [ref=e254]:
+                    - link "Toallas desinfectantes (80 unidades)" [ref=e255] [cursor=pointer]:
+                      - /url: /product/toallas-desinfectantes-80u
+                      - heading "Toallas desinfectantes (80 unidades)" [level=3] [ref=e256]
+                    - paragraph [ref=e257]: Toallas desinfectantes para manos y superficies.
+                    - generic [ref=e258]:
+                      - generic [ref=e259]:
+                        - generic [ref=e260]: $4.131
+                        - generic [ref=e261]: $4.490
+                      - paragraph [ref=e262]: Despacho disponible. Sobre $50.000, envío gratis.
+                    - button "Agregar al carrito" [ref=e264]
+    - contentinfo [ref=e265]:
+      - generic [ref=e266]:
+        - generic [ref=e267]:
+          - generic [ref=e268]:
+            - img "Cleaning Line GP" [ref=e269]
+            - paragraph [ref=e270]: Cleaning Line GP · Productos de limpieza
+          - paragraph [ref=e271]: Venta y distribución de productos de limpieza para hogar y empresas.
+          - paragraph [ref=e272]: © 2025 Cleaning Line GP — Todos los derechos reservados.
+        - generic [ref=e273]:
+          - paragraph [ref=e274]: Atención y despacho
+          - paragraph [ref=e275]: "Ubicación: Pudahuel, sector Laguna Azul con La Estrella."
+          - paragraph [ref=e276]: "Días de trabajo: lunes a domingo."
+          - paragraph [ref=e277]: Despacho en días hábiles y retiro en tienda (hasta sábado).
+          - paragraph [ref=e278]: Expansión gradual a distintas comunas.
+        - generic [ref=e279]:
+          - paragraph [ref=e280]: Contacto
+          - paragraph [ref=e281]: "WhatsApp: +56 9 0000 0000"
+          - paragraph [ref=e282]:
+            - text: "Correo:"
+            - link "contacto@tulimpieza.cl" [ref=e283] [cursor=pointer]:
+              - /url: mailto:contacto@tulimpieza.cl
+          - paragraph [ref=e284]: Facturación disponible para personas naturales y empresas.
+  - generic [ref=e289] [cursor=pointer]:
+    - button "Open Next.js Dev Tools" [ref=e290]:
+      - img [ref=e291]
+    - generic [ref=e294]:
+      - button "Open issues overlay" [ref=e295]:
+        - generic [ref=e296]:
+          - generic [ref=e297]: "0"
+          - generic [ref=e298]: "1"
+        - generic [ref=e299]: Issue
+      - button "Collapse issues badge" [ref=e300]:
+        - img [ref=e301]
+  - alert [ref=e303]
+```

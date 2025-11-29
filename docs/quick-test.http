@@ -1,0 +1,112 @@
+### Archivo de pruebas HTTP para VSCode REST Client
+### Instala la extensión "REST Client" para usar este archivo
+
+@baseUrl = http://localhost:3001
+@email = test@example.com
+@password = password123
+
+### 1. Registro de usuario
+POST {{baseUrl}}/auth/register
+Content-Type: application/json
+
+{
+  "email": "{{email}}",
+  "password": "{{password}}"
+}
+
+### 2. Login (guarda el access_token y la cookie)
+# @name login
+POST {{baseUrl}}/auth/login
+Content-Type: application/json
+
+{
+  "email": "{{email}}",
+  "password": "{{password}}"
+}
+
+### 3. Extraer access_token de la respuesta
+@accessToken = {{login.response.body.access_token}}
+
+### 4. Obtener perfil (ruta protegida)
+GET {{baseUrl}}/users/profile
+Authorization: Bearer {{accessToken}}
+
+### 5. Refresh token (usa la cookie automáticamente)
+# @name refresh
+POST {{baseUrl}}/auth/refresh
+
+### 6. Extraer nuevo access_token
+@newAccessToken = {{refresh.response.body.access_token}}
+
+### 7. Usar nuevo token
+GET {{baseUrl}}/users/profile
+Authorization: Bearer {{newAccessToken}}
+
+### 8. Logout
+POST {{baseUrl}}/auth/logout
+Authorization: Bearer {{newAccessToken}}
+
+### 9. Intentar usar token después de logout (debe fallar)
+POST {{baseUrl}}/auth/refresh
+
+###############################################
+# PRUEBAS DE PRODUCTOS (requiere autenticación)
+###############################################
+
+### 10. Obtener todos los productos
+GET {{baseUrl}}/products
+Authorization: Bearer {{accessToken}}
+
+### 11. Obtener un producto específico
+GET {{baseUrl}}/products/1
+Authorization: Bearer {{accessToken}}
+
+###############################################
+# PRUEBAS DE CARRITO
+###############################################
+
+### 12. Ver carrito
+GET {{baseUrl}}/cart
+Authorization: Bearer {{accessToken}}
+
+### 13. Agregar producto al carrito
+POST {{baseUrl}}/cart
+Authorization: Bearer {{accessToken}}
+Content-Type: application/json
+
+{
+  "productId": 1,
+  "quantity": 2
+}
+
+### 14. Eliminar producto del carrito
+DELETE {{baseUrl}}/cart/1
+Authorization: Bearer {{accessToken}}
+
+###############################################
+# PRUEBAS DE ÓRDENES
+###############################################
+
+### 15. Crear orden desde carrito
+POST {{baseUrl}}/orders
+Authorization: Bearer {{accessToken}}
+
+### 16. Ver mis órdenes
+GET {{baseUrl}}/orders
+Authorization: Bearer {{accessToken}}
+
+### 17. Ver orden específica
+GET {{baseUrl}}/orders/1
+Authorization: Bearer {{accessToken}}
+
+###############################################
+# PRUEBAS DE ADMIN (requiere rol ADMIN)
+###############################################
+
+### 18. Ver todos los carritos (admin)
+GET {{baseUrl}}/cart/all
+Authorization: Bearer {{accessToken}}
+
+### 19. Ver todas las órdenes (admin)
+GET {{baseUrl}}/orders/all
+Authorization: Bearer {{accessToken}}

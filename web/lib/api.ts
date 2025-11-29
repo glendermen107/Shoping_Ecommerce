@@ -1,8 +1,91 @@
 import type { Product } from "./types";
 
+const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:3001";
+
+// Variable en memoria para almacenar el access token
+let accessToken: string | null = null;
+
+// Función para obtener el access token actual
+export function getAccessToken(): string | null {
+  return accessToken;
+}
+
+// Función para establecer el access token
+export function setAccessToken(token: string | null): void {
+  accessToken = token;
+}
+
+// Función para refrescar el access token
+async function refreshAccessToken(): Promise<boolean> {
+  try {
+    const response = await fetch(`${API_URL}/auth/refresh`, {
+      method: "POST",
+      credentials: "include", // Importante: envía las cookies
+      headers: {
+        "Content-Type": "application/json",
+      },
+    });
+
+    if (!response.ok) {
+      setAccessToken(null);
+      return false;
+    }
+
+    const data = await response.json();
+    setAccessToken(data.access_token);
+    return true;
+  } catch (error) {
+    console.error("Error refreshing token:", error);
+    setAccessToken(null);
+    return false;
+  }
+}
+
+// Cliente API mejorado con interceptor para renovación automática
+export async function apiClient(
+  endpoint: string,
+  options: RequestInit = {}
+): Promise<Response> {
+  const url = `${API_URL}${endpoint}`;
+
+  // Agregar el access token si existe
+  const headers: HeadersInit = {
+    "Content-Type": "application/json",
+    ...options.headers,
+  };
+
+  if (accessToken) {
+    headers["Authorization"] = `Bearer ${accessToken}`;
+  }
+
+  // Primera petición
+  let response = await fetch(url, {
+    ...options,
+    headers,
+    credentials: "include", // Importante: envía las cookies
+  });
+
+  // Si recibimos 401, intentar refrescar el token
+  if (response.status === 401) {
+    const refreshed = await refreshAccessToken();
+
+    if (refreshed && accessToken) {
+      // Reintentar la petición original con el nuevo token
+      headers["Authorization"] = `Bearer ${accessToken}`;
+      response = await fetch(url, {
+        ...options,
+        headers,
+        credentials: "include",
+      });
+    }
+  }
+
+  return response;
+}
+
 export async function fetchProducts(query?: string): Promise<Product[]> {
   try {
-    const res = await fetch("http://localhost:3001/products", {
+    const res = await apiClient("/products", {
       cache: "no-store",
     });
 
@@ -133,7 +216,6 @@ export async function fetchProducts(query?: string): Promise<Product[]> {
   }
 }
 
-// si ya tenías fetchProductBySlug, lo dejas como estaba:
 export async function fetchProductBySlug(slug: string): Promise<Product> {
   const products = await fetchProducts();
   const product = products.find((p) => p.slug === slug);
@@ -149,4 +231,65 @@ export async function fetchProductBySlug(slug: string): Promise<Product> {
   }
 
   return product;
+}
+
+// Funciones de autenticación
+export async function loginUser(email: string, password: string) {
+  const response = await fetch(`${API_URL}/auth/login`, {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+    },
+    credentials: "include", // Importante: permite recibir cookies
+    body: JSON.stringify({ email, password }),
+  });
+
+  if (!response.ok) {
+    const error = await response.json().catch(() => ({ message: "Error de autenticación" }));
+    throw new Error(error.message || "Credenciales inválidas");
+  }
+
+  const data = await response.json();
+  setAccessToken(data.access_token);
+  return data;
+}
+
+export async function registerUser(email: string, password: string) {
+  const response = await fetch(`${API_URL}/auth/register`, {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+    },
+    credentials: "include",
+    body: JSON.stringify({ email, password }),
+  });
+
+  if (!response.ok) {
+    const error = await response.json().catch(() => ({ message: "Error en el registro" }));
+    throw new Error(error.message || "No se pudo registrar el usuario");
+  }
+
+  return await response.json();
+}
+
+export async function logoutUser() {
+  try {
+    await apiClient("/auth/logout", {
+      method: "POST",
+    });
+  } catch (error) {
+    console.error("Error during logout:", error);
+  } finally {
+    setAccessToken(null);
+  }
+}
+
+// Función para verificar si el usuario está autenticado
+export async function checkAuth() {
+  try {
+    const refreshed = await refreshAccessToken();
+    return refreshed;
+  } catch {
+    return false;
+  }
 }

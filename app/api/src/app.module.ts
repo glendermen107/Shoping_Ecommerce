@@ -15,6 +15,7 @@ import { RedisModule } from './redis/redis.module';
 import { CartModule } from './cart/cart.module';
 import { AuthModule } from './auth/auth.module';
 import { OrdersModule } from './orders/orders.module'; // Asegúrate de que OrdersModule esté importado
+import { UsersModule } from './users/users.module';
 import { SeedModule } from './seed/seed.module';
 
 @Module({
@@ -42,6 +43,7 @@ import { SeedModule } from './seed/seed.module';
     AuthModule,
     OrdersModule,
     SeedModule,
+    UsersModule
   ],
   controllers: [AppController],
   providers: [AppService],
