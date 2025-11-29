@@ -4,7 +4,7 @@ import "../styles/globals.css";
 
 import Navbar from "../components/navbar/navbar";
 import Footer from "../components/footer/footer";
-import { AuthProvider } from "../components/auth/authContext";
+import { AuthProvider } from "../contexts/AuthContext";
 import { CartProvider } from "../components/cart/cartContext";
 
 export const metadata: Metadata = {

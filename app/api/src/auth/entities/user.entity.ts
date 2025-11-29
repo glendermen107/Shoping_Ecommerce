@@ -24,6 +24,9 @@ export class User {
   @Column({ type: 'varchar', length: 255, select: false }) // `select: false` para no devolverla por defecto
   password: string;
 
+  @Column({ name: 'hashed_refresh_token', type: 'varchar', length: 255, nullable: true, select: false })
+  hashedRefreshToken?: string | null;
+
   @Column({
     type: 'simple-array',
     default: [Role.USER],
@@ -31,7 +34,7 @@ export class User {
   roles: Role[];
 
   @OneToMany(() => Order, (order) => order.user) // <-- 2. Añadir esta relación
-    orders: Order[];
+  orders: Order[];
 
   @OneToMany(() => Cart, (cart) => cart.user)
   carts: Cart[];

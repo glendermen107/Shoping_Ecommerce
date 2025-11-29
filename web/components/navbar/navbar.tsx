@@ -3,8 +3,9 @@
 import { useState } from "react";
 import Link from "next/link";
 import Image from "next/image";
-import { usePathname } from "next/navigation";
+import { usePathname, useRouter } from "next/navigation";
 import { useCart } from "../cart/cartContext";
+import { useAuth } from "../../contexts/AuthContext";
 
 const links = [
   { href: "/", label: "Inicio" },
@@ -15,11 +16,25 @@ const links = [
 
 export default function Navbar() {
   const pathname = usePathname();
+  const router = useRouter();
   const [isOpen, setIsOpen] = useState(false);
+  const [showUserMenu, setShowUserMenu] = useState(false);
   const { totalQuantity } = useCart();
+  const { user, isAuthenticated, isAdmin, logout } = useAuth();
 
   const toggleMenu = () => setIsOpen((prev) => !prev);
   const closeMenu = () => setIsOpen(false);
+
+  const handleLogout = async () => {
+    await logout();
+    setShowUserMenu(false);
+    router.push("/");
+  };
+
+  // Obtener iniciales del email
+  const getInitials = (email: string) => {
+    return email.substring(0, 2).toUpperCase();
+  };
 
   return (
     <header className="sticky top-0 z-30 border-b border-emerald-200 bg-white/90 backdrop-blur-md shadow-sm">
@@ -45,7 +60,7 @@ export default function Navbar() {
 
         {/* DESKTOP MENU */}
         <div className="hidden items-center gap-6 md:flex">
-          {/* Menú “skew” estilo ejemplo */}
+          {/* Menú "skew" estilo ejemplo */}
           <ul className="flex items-center gap-2">
             {links.map((link) => {
               const active = pathname === link.href;
@@ -70,15 +85,68 @@ export default function Navbar() {
             })}
           </ul>
 
-          {/* Login */}
-          <Link
-            href="/auth/login"
-            className="inline-flex items-center rounded-full border border-emerald-300 bg-white px-4 py-1.5 text-xs font-semibold text-emerald-700 shadow-sm hover:bg-emerald-50"
-          >
-            Iniciar sesión
-          </Link>
+          {/* Usuario autenticado o Login */}
+          {isAuthenticated && user ? (
+            <div className="relative">
+              <button
+                onClick={() => setShowUserMenu(!showUserMenu)}
+                className="inline-flex items-center gap-2 rounded-full border border-emerald-300 bg-white px-3 py-1.5 text-xs font-semibold text-emerald-700 shadow-sm hover:bg-emerald-50"
+              >
+                <span className="flex h-6 w-6 items-center justify-center rounded-full bg-emerald-600 text-[10px] font-bold text-white">
+                  {getInitials(user.email)}
+                </span>
+                <span className="max-w-[120px] truncate">{user.email}</span>
+                <svg
+                  className={`h-4 w-4 transition-transform ${showUserMenu ? 'rotate-180' : ''}`}
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
+                >
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                </svg>
+              </button>
 
-          {/* Luego */}
+              {/* Dropdown menu */}
+              {showUserMenu && (
+                <div className="absolute right-0 mt-2 w-48 rounded-lg border border-emerald-200 bg-white shadow-lg">
+                  <div className="py-1">
+                    <Link
+                      href="/profile"
+                      onClick={() => setShowUserMenu(false)}
+                      className="block px-4 py-2 text-sm text-emerald-800 hover:bg-emerald-50"
+                    >
+                      Mi perfil
+                    </Link>
+                    {isAdmin && (
+                      <Link
+                        href="/admin"
+                        onClick={() => setShowUserMenu(false)}
+                        className="block px-4 py-2 text-sm text-emerald-800 hover:bg-emerald-50"
+                      >
+                        Panel de admin
+                      </Link>
+                    )}
+                    <hr className="my-1 border-emerald-100" />
+                    <button
+                      onClick={handleLogout}
+                      className="block w-full px-4 py-2 text-left text-sm text-red-600 hover:bg-red-50"
+                    >
+                      Cerrar sesión
+                    </button>
+                  </div>
+                </div>
+              )}
+            </div>
+          ) : (
+            <Link
+              href="/auth/login"
+              className="inline-flex items-center rounded-full border border-emerald-300 bg-white px-4 py-1.5 text-xs font-semibold text-emerald-700 shadow-sm hover:bg-emerald-50"
+            >
+              Iniciar sesión
+            </Link>
+          )}
+
+          {/* Carrito */}
           <Link
             href="/cart"
             className="inline-flex items-center gap-2 rounded-full bg-emerald-600 px-4 py-1.5 text-xs font-semibold text-white shadow-sm hover:bg-emerald-500"
@@ -92,13 +160,22 @@ export default function Navbar() {
 
         {/* MOBILE / TABLET CHICA */}
         <div className="flex items-center gap-2 md:hidden">
-          {/* Login primero en mobile */}
-          <Link
-            href="/auth/login"
-            className="flex items-center rounded-full border border-emerald-300 bg-white px-3 py-1 text-[11px] font-medium text-emerald-700 shadow-sm hover:bg-emerald-50"
-          >
-            Iniciar
-          </Link>
+          {/* Usuario o Login en mobile */}
+          {isAuthenticated && user ? (
+            <Link
+              href="/profile"
+              className="flex h-8 w-8 items-center justify-center rounded-full bg-emerald-600 text-[10px] font-bold text-white shadow-sm"
+            >
+              {getInitials(user.email)}
+            </Link>
+          ) : (
+            <Link
+              href="/auth/login"
+              className="flex items-center rounded-full border border-emerald-300 bg-white px-3 py-1 text-[11px] font-medium text-emerald-700 shadow-sm hover:bg-emerald-50"
+            >
+              Iniciar
+            </Link>
+          )}
 
           {/* Carrito */}
           <Link
@@ -120,19 +197,16 @@ export default function Navbar() {
           >
             <div className="space-y-1">
               <span
-                className={`block h-0.5 w-5 rounded-full bg-emerald-900 transition-transform ${
-                  isOpen ? "translate-y-1.5 rotate-45" : ""
-                }`}
+                className={`block h-0.5 w-5 rounded-full bg-emerald-900 transition-transform ${isOpen ? "translate-y-1.5 rotate-45" : ""
+                  }`}
               />
               <span
-                className={`block h-0.5 w-5 rounded-full bg-emerald-900 transition-opacity ${
-                  isOpen ? "opacity-0" : "opacity-100"
-                }`}
+                className={`block h-0.5 w-5 rounded-full bg-emerald-900 transition-opacity ${isOpen ? "opacity-0" : "opacity-100"
+                  }`}
               />
               <span
-                className={`block h-0.5 w-5 rounded-full bg-emerald-900 transition-transform ${
-                  isOpen ? "-translate-y-1.5 -rotate-45" : ""
-                }`}
+                className={`block h-0.5 w-5 rounded-full bg-emerald-900 transition-transform ${isOpen ? "-translate-y-1.5 -rotate-45" : ""
+                  }`}
               />
             </div>
           </button>
@@ -161,6 +235,38 @@ export default function Navbar() {
                 </Link>
               );
             })}
+
+            {/* Opciones de usuario en mobile */}
+            {isAuthenticated && (
+              <>
+                <hr className="my-2 border-emerald-100" />
+                <Link
+                  href="/profile"
+                  onClick={closeMenu}
+                  className="rounded-full px-3 py-2 text-emerald-800 hover:bg-emerald-50"
+                >
+                  Mi perfil
+                </Link>
+                {isAdmin && (
+                  <Link
+                    href="/admin"
+                    onClick={closeMenu}
+                    className="rounded-full px-3 py-2 text-emerald-800 hover:bg-emerald-50"
+                  >
+                    Panel de admin
+                  </Link>
+                )}
+                <button
+                  onClick={() => {
+                    handleLogout();
+                    closeMenu();
+                  }}
+                  className="rounded-full px-3 py-2 text-left text-red-600 hover:bg-red-50"
+                >
+                  Cerrar sesión
+                </button>
+              </>
+            )}
           </div>
         </div>
       )}

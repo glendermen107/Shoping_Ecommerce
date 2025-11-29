@@ -1,8 +1,8 @@
 "use client";
 
 import { ReactNode, useEffect } from "react";
-import { useRouter } from "next/navigation";
-import { useAuth } from "./authContext"; // <- OJO: ahora sí viene del contexto
+import { useRouter, usePathname } from "next/navigation";
+import { useAuth } from "../../contexts/AuthContext";
 
 type Props = {
   children: ReactNode;
@@ -11,13 +11,14 @@ type Props = {
 export default function RequireAdmin({ children }: Props) {
   const { isAdmin, isAuthenticated, loading } = useAuth();
   const router = useRouter();
+  const pathname = usePathname();
 
   useEffect(() => {
     if (loading) return;
 
     // si no está autenticado, lo mando a login
     if (!isAuthenticated) {
-      router.replace("/auth/login");
+      router.replace(`/auth/login?redirect=${encodeURIComponent(pathname)}`);
       return;
     }
 
@@ -25,14 +26,17 @@ export default function RequireAdmin({ children }: Props) {
     if (!isAdmin) {
       router.replace("/");
     }
-  }, [loading, isAuthenticated, isAdmin, router]);
+  }, [loading, isAuthenticated, isAdmin, router, pathname]);
 
   if (loading) {
     return (
       <div className="min-h-screen flex items-center justify-center">
-        <p className="text-sm text-muted-foreground">
-          Verificando permisos...
-        </p>
+        <div className="text-center">
+          <div className="h-8 w-8 animate-spin rounded-full border-4 border-emerald-600 border-t-transparent mx-auto mb-4"></div>
+          <p className="text-sm text-muted-foreground">
+            Verificando permisos...
+          </p>
+        </div>
       </div>
     );
   }

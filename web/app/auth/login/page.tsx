@@ -1,34 +1,44 @@
 "use client";
 
-import { FormEvent, useState } from "react";
+import { FormEvent, useState, useEffect } from "react";
 import Link from "next/link";
-import { useRouter } from "next/navigation";
-import { useAuth } from "../../../components/auth/authContext";
+import { useRouter, useSearchParams } from "next/navigation";
+import { useAuth } from "../../../contexts/AuthContext";
 
 export default function LoginPage() {
-  const { login } = useAuth();
+  const { login, isAuthenticated } = useAuth();
   const router = useRouter();
+  const searchParams = useSearchParams();
 
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState("");
 
+  // Si ya está autenticado, redirigir
+  useEffect(() => {
+    if (isAuthenticated) {
+      const redirect = searchParams.get('redirect') || '/profile';
+      router.push(redirect);
+    }
+  }, [isAuthenticated, router, searchParams]);
+
   const handleSubmit = async (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
     setError("");
     setIsSubmitting(true);
 
-    const ok = await login(email, password);
-    setIsSubmitting(false);
+    try {
+      await login(email, password);
 
-    if (!ok) {
-      setError("Correo o contraseña incorrectos.");
-      return;
+      // Redirigir a la página solicitada o al profile
+      const redirect = searchParams.get('redirect') || '/profile';
+      router.push(redirect);
+    } catch (err: any) {
+      setError(err.message || "Correo o contraseña incorrectos.");
+    } finally {
+      setIsSubmitting(false);
     }
-
-    // después puedes leer el rol y mandar a /admin o /profile
-    router.push("/profile");
   };
 
   return (
@@ -52,10 +62,11 @@ export default function LoginPage() {
           <input
             type="email"
             required
-            className="w-full rounded border border-neutral-700 bg-neutral-950 px-3 py-2 outline-none focus:border-emerald-500"
+            className="w-full rounded border border-neutral-700 px-3 py-2 outline-none focus:border-emerald-500"
             value={email}
             onChange={(e) => setEmail(e.target.value)}
             placeholder="tucorreo@ejemplo.cl"
+            autoComplete="email"
           />
         </div>
 
@@ -66,10 +77,11 @@ export default function LoginPage() {
           <input
             type="password"
             required
-            className="w-full rounded border border-neutral-700 bg-neutral-950 px-3 py-2 outline-none focus:border-emerald-500"
+            className="w-full rounded border border-neutral-700 px-3 py-2 outline-none focus:border-emerald-500"
             value={password}
             onChange={(e) => setPassword(e.target.value)}
             placeholder="••••••••"
+            autoComplete="current-password"
           />
         </div>
 

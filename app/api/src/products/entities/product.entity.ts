@@ -30,14 +30,7 @@ export class Product {
   @Column({ type: 'varchar', name: 'image_url', nullable: true })
   imageUrl: string;
 
-  @ManyToOne(() => Category, (category) => category.products, {
-    onDelete: 'SET NULL', // O 'CASCADE' si prefieres eliminar productos al borrar categoría
-    nullable: true,
-  })
-  @JoinColumn({ name: 'category_id' })
-  category: Category;
-
-    // --- NUEVOS CAMPOS PARA OFERTAS / CARRUSEL ---
+  // --- NUEVOS CAMPOS PARA OFERTAS / CARRUSEL ---
   @Column({ type: 'boolean', name: 'is_featured', default: false })
   isFeatured: boolean;
 
