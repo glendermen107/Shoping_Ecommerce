@@ -1,65 +1,76 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 
 type PriceRangeFilterProps = {
   maxLimit: number;
   initialMaxPrice?: number;
 };
 
-function formatCLP(value: number) {
-  return value.toLocaleString("es-CL", {
-    style: "currency",
-    currency: "CLP",
-    maximumFractionDigits: 0,
-  });
-}
+const currencyCLP = new Intl.NumberFormat("es-CL", {
+  style: "currency",
+  currency: "CLP",
+  maximumFractionDigits: 0,
+});
 
 export default function PriceRangeFilter({
   maxLimit,
   initialMaxPrice,
 }: PriceRangeFilterProps) {
   const [value, setValue] = useState(
-    initialMaxPrice && initialMaxPrice > 0 ? initialMaxPrice : maxLimit,
+    initialMaxPrice && !Number.isNaN(initialMaxPrice)
+      ? initialMaxPrice
+      : maxLimit
   );
 
-  const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    setValue(Number(e.target.value));
-  };
+  // Si cambian los props (por navegación con filtros) actualizamos el slider
+  useEffect(() => {
+    setValue(
+      initialMaxPrice && !Number.isNaN(initialMaxPrice)
+        ? initialMaxPrice
+        : maxLimit
+    );
+  }, [initialMaxPrice, maxLimit]);
 
   return (
-    <div className="space-y-3">
-      {/* Título con líneas a los lados */}
-      <div className="flex items-center gap-2">
-        <span className="h-px flex-1 bg-slate-700" />
-        <span className="text-[11px] font-semibold text-slate-300">
-          Filtrar por precio
+    <div className="space-y-3 rounded-2xl border border-emerald-200 bg-white/70 px-3 py-3">
+      <p className="text-xs font-semibold text-emerald-800 uppercase tracking-wide">
+        Filtrar por precio
+      </p>
+
+      {/* Valor actual */}
+      <div className="flex items-baseline justify-between text-xs">
+        <span className="text-emerald-700 font-medium">
+          Hasta:{" "}
+          <span className="text-sm font-semibold">
+            {currencyCLP.format(value)}
+          </span>
         </span>
-        <span className="h-px flex-1 bg-slate-700" />
+        <span className="text-[11px] text-emerald-700/80">
+          Mín: {currencyCLP.format(0)}
+        </span>
       </div>
 
       {/* Slider */}
-      <div className="space-y-2">
-        <input
-          type="range"
-          min={0}
-          max={maxLimit}
-          value={value}
-          onChange={handleChange}
-          className="w-full accent-emerald-500"
-        />
+      <input
+        type="range"
+        name="maxPrice"
+        min={0}
+        max={maxLimit}
+        step={1000}
+        value={value}
+        onChange={(e) => setValue(Number(e.target.value))}
+        className="
+          w-full cursor-pointer
+          accent-emerald-600
+        "
+      />
 
-        <p className="text-xs text-slate-300">
-          Precio:{" "}
-          <span className="font-semibold">{formatCLP(0)}</span> —{" "}
-          <span className="font-semibold">
-            {formatCLP(value)}
-          </span>
-        </p>
+      {/* Límites visuales */}
+      <div className="flex justify-between text-[11px] text-emerald-700/80">
+        <span>{currencyCLP.format(0)}</span>
+        <span>{currencyCLP.format(maxLimit)}</span>
       </div>
-
-      {/* Valor enviado en el formulario */}
-      <input type="hidden" name="maxPrice" value={value} />
     </div>
   );
 }

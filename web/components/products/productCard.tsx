@@ -1,97 +1,92 @@
+"use client";
+
 import Link from "next/link";
 import type { Product } from "../../lib/types";
-import AddToCartButton from "./addToCartButton";
+import { useCart } from "../cart/cartContext";
 
-// Formateo CLP
-function formatPriceCLP(value: number) {
-  if (Number.isNaN(value)) return "$0";
-  return value.toLocaleString("es-CL", {
-    style: "currency",
-    currency: "CLP",
-    maximumFractionDigits: 0,
-  });
-}
+const currencyCLP = new Intl.NumberFormat("es-CL", {
+  style: "currency",
+  currency: "CLP",
+  maximumFractionDigits: 0,
+});
 
-export default function ProductCard({ p }: { p: Product }) {
-  const isOnSale = p.isOnSale || (p.discountPercent && p.discountPercent > 0);
-  const discountPercent = p.discountPercent ?? 0;
+type Props = {
+  p: Product;
+};
 
-  // Calcular precio final con descuento
-  const discountedPrice = isOnSale
-    ? Math.round(p.price * (1 - discountPercent / 100))
-    : p.price;
+export default function ProductCard({ p }: Props) {
+  const { addItem } = useCart();
 
-  const shortDescription = p.description
-    ? p.description.length > 80
-      ? p.description.slice(0, 77) + "..."
-      : p.description
-    : "Producto de limpieza.";
+  const isOnSale = !!p.isOnSale && p.discountPercent && p.discountPercent > 0;
 
   return (
-    <article className="flex flex-col w-full h-full rounded-xl border border-emerald-100 bg-white shadow-sm hover:shadow-md hover:border-emerald-300 transition">
+    <article className="flex flex-col rounded-3xl border border-border bg-card p-4 shadow-sm hover:shadow-md transition-all">
+      {/* Imagen + badge */}
+      <Link
+        href={`/product/${p.slug}`}
+        className="relative block overflow-hidden rounded-2xl bg-muted"
+      >
+        <div className="flex h-44 w-full items-center justify-center md:h-52">
+          {p.imageUrl ? (
+            <img
+              src={p.imageUrl}
+              alt={p.name}
+              className="max-h-full max-w-full object-contain"
+            />
+          ) : (
+            <span className="text-sm text-muted-foreground">
+              Sin imagen
+            </span>
+          )}
+        </div>
 
-      
-      {/* Imagen */}
-      <Link href={`/product/${p.slug}`} className="block overflow-hidden rounded-t-xl relative">
-        
-        {/* Badge de Oferta */}
         {isOnSale && (
-          <span className="absolute left-2 top-2 rounded-full bg-emerald-600 px-2 py-0.5 text-[11px] font-semibold text-white shadow">
-            {discountPercent ? `-${discountPercent}%` : "Oferta"}
+          <span className="absolute left-3 top-3 rounded-full bg-rose-600 px-3 py-1 text-xs font-semibold text-white">
+            Oferta {p.discountPercent}%
           </span>
         )}
-
-        {/* eslint-disable-next-line @next/next/no-img-element */}
-        <img
-          src={p.imageUrl || "/placeholder.png"}
-          alt={p.name}
-          className="h-48 w-full object-cover transition-transform duration-200 hover:scale-[1.03]"
-        />
       </Link>
 
-      {/* Contenido */}
-      <div className="flex flex-1 flex-col gap-2 p-3">
-        
-        {/* Nombre */}
-        <Link href={`/product/${p.slug}`} className="block hover:underline">
-          <h3 className="font-medium text-sm md:text-base text-slate-800">
-            {p.name}
-          </h3>
+      {/* Info texto */}
+      <div className="mt-4 flex-1 space-y-1">
+        <Link
+          href={`/product/${p.slug}`}
+          className="block text-lg font-semibold leading-tight text-foreground hover:underline"
+        >
+          {p.name}
         </Link>
 
-        {/* Descripción */}
-        <p className="text-xs text-slate-500">{shortDescription}</p>
+        {p.categoryName && (
+          <p className="text-sm text-muted-foreground">{p.categoryName}</p>
+        )}
 
-        {/* Precio */}
-        <div className="mt-auto space-y-1">
-          {/* Precio si NO hay oferta */}
-          {!isOnSale && (
-            <p className="text-sm font-semibold text-slate-900">
-              {formatPriceCLP(p.price)}
-            </p>
-          )}
+        <p className="mt-1 text-xl font-semibold text-emerald-700">
+          {currencyCLP.format(Number(p.price) || 0)}
+        </p>
 
-          {/* Precio si hay oferta */}
-          {isOnSale && (
-            <div className="flex flex-col">
-              <span className="text-sm font-semibold text-emerald-700">
-                {formatPriceCLP(discountedPrice)}
-              </span>
-              <span className="text-xs line-through text-slate-400">
-                {formatPriceCLP(p.price)}
-              </span>
-            </div>
-          )}
-
-          <p className="text-[11px] text-slate-500">
-            Despacho disponible. Sobre $50.000, envío gratis.
+        {p.description && (
+          <p className="text-sm text-muted-foreground line-clamp-2">
+            {p.description}
           </p>
-        </div>
+        )}
+      </div>
 
-        {/* Botón agregar */}
-        <div className="pt-1">
-          <AddToCartButton product={p} />
-        </div>
+      {/* Botón agregar */}
+      <div className="mt-4 flex items-center justify-between gap-3">
+        <button
+          type="button"
+          onClick={() => addItem(p)}
+          className="flex-1 rounded-full bg-emerald-600 px-4 py-2.5 text-base font-semibold text-white hover:bg-emerald-500 transition-colors"
+        >
+          Agregar al carrito
+        </button>
+
+        <Link
+          href={`/product/${p.slug}`}
+          className="text-sm font-medium text-emerald-700 hover:text-emerald-800"
+        >
+          Ver más
+        </Link>
       </div>
     </article>
   );

@@ -1,133 +1,191 @@
-// web/app/cart/page.tsx
 "use client";
 
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { useCart } from "../../components/cart/cartContext";
 
+const currencyCLP = new Intl.NumberFormat("es-CL", {
+  style: "currency",
+  currency: "CLP",
+  maximumFractionDigits: 0,
+});
+
 export default function CartPage() {
-  const { items, totalQuantity, totalAmount, updateItemQuantity, removeItem, clear } =
+  const router = useRouter();
+  const { items, totalAmount, totalQuantity, updateItemQuantity, removeItem, clear } =
     useCart();
 
-  const cartItems = items;
-
-  const handleQuantityChange = (productId: string, quantity: number) => {
-    if (quantity < 1) return;
-    updateItemQuantity(productId, quantity);
+  const goToCheckout = () => {
+    router.push("/checkout");
   };
 
-  const handleRemove = (productId: string) => {
-    removeItem(productId);
-  };
+  // 🧺 ESTADO CUANDO EL CARRITO ESTÁ VACÍO
+  if (!items || items.length === 0) {
+    return (
+      <section className="mx-auto flex max-w-3xl flex-col items-center px-4 py-12 text-center gap-6">
+        <div className="space-y-2">
+          <h1 className="text-3xl font-semibold text-foreground">Carrito</h1>
+        </div>
 
-  const handleClear = () => {
-    clear();
-  };
+        <div className="w-full max-w-md rounded-3xl border border-emerald-200 bg-emerald-50/60 px-6 py-8 shadow-sm space-y-4">
+          <div className="flex flex-col items-center gap-2">
+            <span className="text-5xl">🧺</span>
+            <h2 className="text-xl font-semibold text-emerald-900">
+              Tu carrito está vacío
+            </h2>
+          </div>
 
+          <p className="text-base text-emerald-900">
+            Aún no has agregado productos. Explora nuestro catálogo y selecciona
+            los artículos que necesitas para tu hogar o empresa.
+          </p>
+
+          <div className="flex flex-col items-center gap-3 pt-2">
+            <Link
+              href="/catalogo"
+              className="inline-flex items-center justify-center rounded-2xl bg-emerald-600 px-6 py-2.5 text-base font-semibold text-white hover:bg-emerald-500"
+            >
+              Ver catálogo
+            </Link>
+            <p className="text-xs text-emerald-900/80">
+              Tip: puedes volver a esta página en cualquier momento desde el
+              botón <strong>Carrito</strong> del menú superior.
+            </p>
+          </div>
+        </div>
+      </section>
+    );
+  }
+
+  // 🧼 CARRITO CON PRODUCTOS
   return (
-    <section className="space-y-6">
-      <h1 className="text-2xl font-semibold">Carrito</h1>
-
-      {!cartItems.length ? (
-        <p>
-          Tu carrito está vacío.{" "}
-          <Link href="/catalogo" className="text-emerald-700 underline">
-            Ver catálogo
-          </Link>
+    <section className="mx-auto max-w-5xl px-4 py-8 space-y-6">
+      <header className="space-y-1">
+        <h1 className="text-3xl font-semibold text-foreground">Carrito</h1>
+        <p className="text-base text-muted-foreground">
+          Revisa tus productos antes de continuar con el pago.
         </p>
-      ) : (
-        <>
-          <ul className="space-y-3">
-            {cartItems.map((item) => (
+      </header>
+
+      <div className="grid gap-6 md:grid-cols-[minmax(0,1.6fr)_minmax(0,1fr)] items-start">
+        {/* Lista de productos */}
+        <div className="space-y-4 rounded-3xl border border-border bg-card p-6 shadow-sm">
+          <h2 className="text-lg font-semibold text-foreground">
+            Productos en el carrito
+          </h2>
+
+          <ul className="space-y-3 text-sm">
+            {items.map((item) => (
               <li
                 key={item.productId}
-                className="flex items-center justify-between rounded-lg border border-emerald-100 bg-white/90 p-3 shadow-sm"
+                className="flex flex-col gap-3 rounded-2xl border border-border bg-white px-4 py-3 md:flex-row md:items-center md:justify-between"
               >
-                <div>
-                  <p className="font-medium text-slate-800">{item.name}</p>
-                  <p className="text-sm text-neutral-500">
-                    ${item.price.toLocaleString()}
+                <div className="space-y-1">
+                  <p className="text-base font-semibold text-foreground">
+                    {item.name}
                   </p>
-                  <p className="text-xs text-neutral-500 mt-1">
-                    Subtotal:{" "}
+                  <p className="text-xs text-muted-foreground">
+                    Precio unitario:{" "}
                     <span className="font-semibold">
-                      ${(item.price * item.quantity).toLocaleString()}
+                      {currencyCLP.format(item.price)}
                     </span>
                   </p>
                 </div>
 
-                <div className="flex items-center gap-3">
-                  <input
-                    type="number"
-                    min={1}
-                    value={item.quantity}
-                    onChange={(event) =>
-                      handleQuantityChange(
-                        item.productId,
-                        Number(event.target.value)
-                      )
-                    }
-                    className="
-                      w-16 rounded-md border border-emerald-200 bg-white
-                      px-2 py-1 text-sm text-slate-800
-                      outline-none focus:border-emerald-500
-                    "
-                  />
+                <div className="flex flex-col items-end gap-2 md:flex-row md:items-center">
+                  {/* Cantidad */}
+                  <div className="flex items-center gap-2">
+                    <button
+                      type="button"
+                      onClick={() =>
+                        updateItemQuantity(
+                          item.productId,
+                          Math.max(1, item.quantity - 1)
+                        )
+                      }
+                      className="flex h-8 w-8 items-center justify-center rounded-full border border-border bg-white text-lg leading-none hover:bg-emerald-50"
+                    >
+                      –
+                    </button>
+                    <span className="min-w-[2rem] text-center text-base font-semibold">
+                      {item.quantity}
+                    </span>
+                    <button
+                      type="button"
+                      onClick={() =>
+                        updateItemQuantity(item.productId, item.quantity + 1)
+                      }
+                      className="flex h-8 w-8 items-center justify-center rounded-full border border-border bg-white text-lg leading-none hover:bg-emerald-50"
+                    >
+                      +
+                    </button>
+                  </div>
 
-                  <button
-                    type="button"
-                    onClick={() => handleRemove(item.productId)}
-                    className="
-                      rounded-md px-2 py-1 text-xs font-medium text-rose-500
-                      hover:bg-rose-50 hover:text-rose-700
-                      transition
-                    "
-                  >
-                    Eliminar
-                  </button>
+                  {/* Total + eliminar */}
+                  <div className="flex flex-col items-end gap-1">
+                    <p className="text-base font-semibold text-emerald-700">
+                      {currencyCLP.format(item.price * item.quantity)}
+                    </p>
+                    <button
+                      type="button"
+                      onClick={() => removeItem(item.productId)}
+                      className="text-xs font-medium text-rose-600 hover:text-rose-700"
+                    >
+                      Quitar
+                    </button>
+                  </div>
                 </div>
               </li>
             ))}
           </ul>
 
-          <div className="flex items-center justify-between border-t border-emerald-100 pt-4">
-            <div>
-              <p className="text-lg text-slate-800">
-                Subtotal: <b>${totalAmount.toLocaleString()}</b>
-              </p>
-              <p className="text-sm text-neutral-500">
-                {totalQuantity} ítem{totalQuantity !== 1 && "s"}
-              </p>
-            </div>
+          <div className="flex flex-wrap items-center justify-between gap-3 pt-3">
+            <button
+              type="button"
+              onClick={clear}
+              className="text-sm font-medium text-rose-600 hover:text-rose-700"
+            >
+              Vaciar carrito
+            </button>
 
-            <div className="flex gap-2">
-              <button
-                type="button"
-                onClick={handleClear}
-                className="
-                  rounded-full border border-rose-300
-                  px-4 py-2 text-sm font-medium text-rose-600
-                  hover:border-rose-400 hover:bg-rose-50 hover:text-rose-700
-                  transition
-                "
-              >
-                Vaciar carrito
-              </button>
-
-              <Link
-                href="/checkout"
-                className="
-                  rounded-full bg-emerald-600
-                  px-5 py-2 text-sm font-semibold text-white
-                  hover:bg-emerald-500 hover:shadow-md
-                  transition
-                "
-              >
-                Ir al pago
-              </Link>
-            </div>
+            <Link
+              href="/catalogo"
+              className="text-sm font-medium text-emerald-700 hover:text-emerald-800"
+            >
+              ← Seguir comprando
+            </Link>
           </div>
-        </>
-      )}
+        </div>
+
+        {/* Resumen */}
+        <aside className="space-y-4 rounded-3xl border border-border bg-card p-6 shadow-sm">
+          <h2 className="text-lg font-semibold text-foreground">Resumen</h2>
+
+          <div className="space-y-1 text-base">
+            <p className="flex items-center justify-between">
+              <span>Productos</span>
+              <span className="font-semibold">{totalQuantity}</span>
+            </p>
+            <p className="flex items-center justify-between">
+              <span>Total</span>
+              <span className="text-xl font-semibold text-emerald-700">
+                {currencyCLP.format(totalAmount)}
+              </span>
+            </p>
+            <p className="text-xs text-muted-foreground">
+              El costo de despacho se coordina y confirma posteriormente.
+            </p>
+          </div>
+
+          <button
+            type="button"
+            onClick={goToCheckout}
+            className="mt-2 w-full rounded-2xl bg-emerald-600 py-2.5 text-base font-semibold text-white hover:bg-emerald-500"
+          >
+            Continuar al pago
+          </button>
+        </aside>
+      </div>
     </section>
   );
 }

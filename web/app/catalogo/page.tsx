@@ -1,3 +1,4 @@
+// web/app/catalogo/page.tsx
 import ProductGrid from "../../components/products/productGrid";
 import OffersCarousel from "../../components/carousel/offersCarousel";
 import PriceRangeFilter from "../../components/carousel/priceRangeFilter";
@@ -33,7 +34,6 @@ export default async function catalogoPage({ searchParams }: catalogoPageProps) 
 
   const products = await fetchProducts();
 
-  // Nos aseguramos de trabajar siempre con número
   const prices = products.map((p) => Number(p.price) || 0);
   const globalMaxPrice = prices.length > 0 ? Math.max(...prices) : 10000;
 
@@ -80,34 +80,37 @@ export default async function catalogoPage({ searchParams }: catalogoPageProps) 
   }
 
   return (
-    <section className="space-y-6">
+    <section className="mx-auto max-w-7xl px-4 py-6 space-y-6">
       {/* Encabezado general */}
-      <header className="space-y-3">
-        <h1 className="text-2xl font-semibold text-emerald-400">
+      <header className="space-y-2">
+        <h1 className="text-3xl font-semibold text-foreground">
           Catálogo
         </h1>
-        <p className="text-slate-300 text-sm">
+        <p className="text-base text-foreground">
           Explora nuestros productos de limpieza para hogar y empresas.
         </p>
       </header>
 
-      {/* LAYOUT PRINCIPAL EN DOS COLUMNAS */}
-      <div className="flex gap-6">
+      {/* LAYOUT PRINCIPAL RESPONSIVO */}
+      <div className="mt-2 flex flex-col gap-6 md:flex-row">
         {/* ───────────── SIDEBAR IZQUIERDO ───────────── */}
         <aside
-            className="
-              hidden md:block
-              w-[300px]
-              rounded-3xl border border-emerald-200 bg-emerald-50
-              p-5 space-y-6 text-sm shadow-md text-black
-            "
-          >
+          className="
+            hidden md:block
+            w-64
+            rounded-3xl border border-emerald-200 bg-emerald-50
+            p-5 space-y-6 text-sm shadow-md text-emerald-900
+            sticky top-24      /* ⬅ se pega al hacer scroll */
+            max-h-[90vh]       /* ⬅ no pasa del alto de la pantalla */
+            overflow-y-auto    /* ⬅ si hay muchos filtros, scroll interno */
+          "
+        >
           {/* Título / descripción corta */}
           <div className="space-y-1">
             <p className="text-xs font-semibold uppercase tracking-wide text-emerald-800">
               Filtros
             </p>
-            <p className="text-[11px] text-emerald-900">
+            <p className="text-xs">
               Ajusta los filtros para encontrar el producto que necesitas.
             </p>
           </div>
@@ -125,7 +128,7 @@ export default async function catalogoPage({ searchParams }: catalogoPageProps) 
                 placeholder="Ej: cloro..."
                 className="
                   w-full rounded-full border border-emerald-200 bg-white 
-                  px-3 py-1.5 text-xs text-black 
+                  px-3 py-2 text-sm text-black 
                   placeholder:text-emerald-600
                   outline-none focus:border-emerald-500
                 "
@@ -140,7 +143,7 @@ export default async function catalogoPage({ searchParams }: catalogoPageProps) 
                 Categoría
               </p>
 
-              <div className="flex flex-col gap-2 text-xs text-black">
+              <div className="flex flex-col gap-2 text-sm text-black">
                 {[
                   { key: "", label: "Todos" },
                   { key: "cloro", label: "Cloro y desinfectantes" },
@@ -158,7 +161,7 @@ export default async function catalogoPage({ searchParams }: catalogoPageProps) 
                       defaultChecked={
                         category === opt.key || (!category && opt.key === "")
                       }
-                      className="h-3 w-3 text-emerald-600"
+                      className="h-4 w-4 text-emerald-600"
                     />
                     <span>{opt.label}</span>
                   </label>
@@ -174,24 +177,24 @@ export default async function catalogoPage({ searchParams }: catalogoPageProps) 
                 Tipo de producto
               </p>
 
-              <label className="flex items-center gap-2 text-xs text-black cursor-pointer">
+              <label className="flex items-center gap-2 text-sm text-black cursor-pointer">
                 <input
                   type="checkbox"
                   name="featured"
                   value="1"
                   defaultChecked={onlyFeatured}
-                  className="h-3 w-3 text-emerald-600"
+                  className="h-4 w-4 text-emerald-600"
                 />
                 <span>Solo destacados</span>
               </label>
 
-              <label className="flex items-center gap-2 text-xs text-black cursor-pointer">
+              <label className="flex items-center gap-2 text-sm text-black cursor-pointer">
                 <input
                   type="checkbox"
                   name="onSale"
                   value="1"
                   defaultChecked={onlyOnSale}
-                  className="h-3 w-3 text-emerald-600"
+                  className="h-4 w-4 text-emerald-600"
                 />
                 <span>Solo en oferta</span>
               </label>
@@ -215,7 +218,7 @@ export default async function catalogoPage({ searchParams }: catalogoPageProps) 
                 type="submit"
                 className="
                   rounded-full bg-emerald-600 
-                  px-4 py-1.5 text-xs font-medium text-white 
+                  px-4 py-2 text-xs font-semibold text-white 
                   hover:bg-emerald-500 transition
                 "
               >
@@ -224,7 +227,7 @@ export default async function catalogoPage({ searchParams }: catalogoPageProps) 
 
               <a
                 href="/catalogo"
-                className="text-[11px] text-emerald-700 hover:text-emerald-900"
+                className="text-xs text-emerald-700 hover:text-emerald-900"
               >
                 Limpiar
               </a>
@@ -232,11 +235,10 @@ export default async function catalogoPage({ searchParams }: catalogoPageProps) 
           </form>
         </aside>
 
-
         {/* ───────────── CONTENIDO PRINCIPAL ───────────── */}
         <div className="flex-1 space-y-6">
           {/* Contador */}
-          <p className="text-xs text-slate-400">
+          <p className="text-sm text-muted-foreground">
             {totalCount === 0
               ? "No se encontraron productos."
               : `Mostrando ${totalCount} producto${
@@ -255,7 +257,7 @@ export default async function catalogoPage({ searchParams }: catalogoPageProps) 
 
           {/* Grid abajo */}
           <div className="space-y-2">
-            <h2 className="text-lg font-semibold text-emerald-400">
+            <h2 className="text-xl font-semibold text-foreground">
               Productos disponibles
             </h2>
 

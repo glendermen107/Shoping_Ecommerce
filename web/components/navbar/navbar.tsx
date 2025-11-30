@@ -5,6 +5,7 @@ import Link from "next/link";
 import Image from "next/image";
 import { usePathname } from "next/navigation";
 import { useCart } from "../cart/cartContext";
+import { useAuth } from "../auth/authContext"; // 👈 NUEVO
 
 const links = [
   { href: "/", label: "Inicio" },
@@ -17,6 +18,7 @@ export default function Navbar() {
   const pathname = usePathname();
   const [isOpen, setIsOpen] = useState(false);
   const { totalQuantity } = useCart();
+  const { isAuthenticated } = useAuth(); // 👈 leemos si hay sesión
 
   const toggleMenu = () => setIsOpen((prev) => !prev);
   const closeMenu = () => setIsOpen(false);
@@ -45,7 +47,7 @@ export default function Navbar() {
 
         {/* DESKTOP MENU */}
         <div className="hidden items-center gap-6 md:flex">
-          {/* Menú “skew” estilo ejemplo */}
+          {/* Menú “skew” */}
           <ul className="flex items-center gap-2">
             {links.map((link) => {
               const active = pathname === link.href;
@@ -70,20 +72,29 @@ export default function Navbar() {
             })}
           </ul>
 
-          {/* Login */}
-          <Link
-            href="/auth/login"
-            className="inline-flex items-center rounded-full border border-emerald-300 bg-white px-4 py-1.5 text-xs font-semibold text-emerald-700 shadow-sm hover:bg-emerald-50"
-          >
-            Iniciar sesión
-          </Link>
+          {/* Cuenta / Login (DESKTOP) */}
+          {isAuthenticated ? (
+            <Link
+              href="/profile"
+              className="inline-flex items-center rounded-full border border-emerald-300 bg-white px-4 py-1.5 text-xs font-semibold text-emerald-700 shadow-sm hover:bg-emerald-50"
+            >
+              Mi cuenta
+            </Link>
+          ) : (
+            <Link
+              href="/auth/login"
+              className="inline-flex items-center rounded-full border border-emerald-300 bg-white px-4 py-1.5 text-xs font-semibold text-emerald-700 shadow-sm hover:bg-emerald-50"
+            >
+              Iniciar sesión
+            </Link>
+          )}
 
-          {/* Luego */}
+          {/* Carrito */}
           <Link
             href="/cart"
             className="inline-flex items-center gap-2 rounded-full bg-emerald-600 px-4 py-1.5 text-xs font-semibold text-white shadow-sm hover:bg-emerald-500"
           >
-            🛒 Carrito
+            🛒Carrito
             <span className="flex h-5 w-5 items-center justify-center rounded-full bg-white/15 text-[10px] font-bold">
               {totalQuantity}
             </span>
@@ -92,13 +103,22 @@ export default function Navbar() {
 
         {/* MOBILE / TABLET CHICA */}
         <div className="flex items-center gap-2 md:hidden">
-          {/* Login primero en mobile */}
-          <Link
-            href="/auth/login"
-            className="flex items-center rounded-full border border-emerald-300 bg-white px-3 py-1 text-[11px] font-medium text-emerald-700 shadow-sm hover:bg-emerald-50"
-          >
-            Iniciar
-          </Link>
+          {/* Cuenta / Login (MOBILE) */}
+          {isAuthenticated ? (
+            <Link
+              href="/profile"
+              className="flex items-center rounded-full border border-emerald-300 bg-white px-3 py-1 text-[11px] font-medium text-emerald-700 shadow-sm hover:bg-emerald-50"
+            >
+              Mi cuenta
+            </Link>
+          ) : (
+            <Link
+              href="/auth/login"
+              className="flex items-center rounded-full border border-emerald-300 bg-white px-3 py-1 text-[11px] font-medium text-emerald-700 shadow-sm hover:bg-emerald-50"
+            >
+              Iniciar
+            </Link>
+          )}
 
           {/* Carrito */}
           <Link
