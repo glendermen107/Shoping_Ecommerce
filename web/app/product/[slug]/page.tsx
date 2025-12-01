@@ -16,11 +16,10 @@ const currencyCLP = new Intl.NumberFormat("es-CL", {
 
 export default function ProductPage() {
   const { slug } = useParams();
+  const { addItem } = useCart();
 
   const [product, setProduct] = useState<Product | null>(null);
   const [loading, setLoading] = useState(true);
-
-  const { addItem } = useCart();
 
   useEffect(() => {
     const load = async () => {
@@ -38,6 +37,7 @@ export default function ProductPage() {
     load();
   }, [slug]);
 
+  // 🌀 Cargando
   if (loading) {
     return (
       <section className="mx-auto max-w-6xl px-4 py-8">
@@ -46,10 +46,13 @@ export default function ProductPage() {
     );
   }
 
+  // ❌ Producto no encontrado
   if (!product) {
     return (
       <section className="mx-auto max-w-6xl px-4 py-8 space-y-4">
-        <p className="text-base text-muted-foreground">Producto no encontrado.</p>
+        <p className="text-base text-muted-foreground">
+          Producto no encontrado.
+        </p>
 
         <Link
           href="/catalogo"
@@ -61,18 +64,8 @@ export default function ProductPage() {
     );
   }
 
-  const categoryLabel =
-    product.categoryName ||
-    (product.categoryKey === "cloro"
-      ? "Cloro y desinfectantes"
-      : product.categoryKey === "hogar"
-      ? "Limpieza del hogar"
-      : product.categoryKey === "personal"
-      ? "Limpieza personal"
-      : "Sin categoría");
-
-  const stockDisplay =
-    (product as any).stock != null ? (product as any).stock : 0;
+  const stock = product.stock ?? 0;
+  const categoryName = product.category?.name ?? "Sin categoría";
 
   return (
     <section className="mx-auto max-w-6xl px-4 py-8 space-y-6">
@@ -85,11 +78,11 @@ export default function ProductPage() {
         <span className="text-foreground">{product.name}</span>
       </nav>
 
-      {/* Layout principal en 2 columnas tipo card */}
+      {/* Layout principal */}
       <div className="grid gap-8 lg:grid-cols-[minmax(0,1.1fr)_minmax(0,1fr)] items-start">
-        {/* COLUMNA IZQUIERDA: FOTO + DESPACHO */}
+        {/* LEFT COLUMN */}
         <div className="space-y-4">
-          {/* Card foto */}
+          {/* Imagen */}
           <div className="rounded-3xl border border-border bg-card p-4 shadow-sm">
             <div className="h-[260px] md:h-[320px] w-full overflow-hidden rounded-2xl bg-muted flex items-center justify-center">
               {product.imageUrl ? (
@@ -106,66 +99,68 @@ export default function ProductPage() {
             </div>
           </div>
 
-          {/* Card info despacho */}
+          {/* Info despacho */}
           <section className="rounded-3xl border border-emerald-200 bg-emerald-50 px-4 py-3 text-sm text-emerald-900 space-y-1">
             <p className="font-semibold">
               🚚 Despacho disponible.
-              <span className="font-normal"> Sobre $50.000 en productos, el envío es gratis.</span>
+              <span className="font-normal">
+                {" "}
+                Sobre $50.000 en productos, el envío es gratis.
+              </span>
             </p>
             <p>📍 Retiro en tienda de lunes a domingo.</p>
             <p className="text-xs">
-              Los tiempos de despacho y el costo final se confirman al coordinar el pedido.
+              Los tiempos de despacho y el costo final se confirman al coordinar
+              el pedido.
             </p>
           </section>
         </div>
 
-        {/* COLUMNA DERECHA: CARD INFO PRODUCTO + BOTÓN */}
+        {/* RIGHT COLUMN */}
         <div className="rounded-3xl border border-border bg-card p-5 shadow-sm flex flex-col gap-4">
-          {/* Info principal */}
-          <div className="space-y-4">
-            <header className="space-y-2">
-              <h1 className="text-3xl font-semibold text-foreground">
-                {product.name}
-              </h1>
-              <p className="text-base text-muted-foreground">
-                Categoría: {categoryLabel}
-              </p>
-            </header>
+          {/* Nombre + categoría */}
+          <header className="space-y-2">
+            <h1 className="text-3xl font-semibold text-foreground">
+              {product.name}
+            </h1>
+            <p className="text-base text-muted-foreground">
+              Categoría: {categoryName}
+            </p>
+          </header>
 
-            {/* Precio + stock */}
-            <div className="space-y-1">
-              <p className="text-2xl font-semibold text-foreground">
-                {currencyCLP.format(Number(product.price) || 0)}
-              </p>
-              <p className="text-base text-muted-foreground">
-                Stock disponible: {stockDisplay} unidades
-              </p>
-            </div>
-
-            {/* Descripción */}
-            <section className="space-y-1">
-              <h2 className="text-lg font-semibold text-foreground">
-                Descripción
-              </h2>
-              <p className="text-base text-foreground leading-relaxed">
-                {product.description ||
-                  "Producto de limpieza para uso doméstico y/o industrial."}
-              </p>
-            </section>
-
-            {/* Fichas técnicas */}
-            <section className="space-y-1">
-              <h3 className="text-base font-semibold text-foreground">
-                Fichas técnicas y seguridad
-              </h3>
-              <p className="text-sm text-foreground leading-relaxed">
-                Si el producto lo requiere, se pueden adjuntar fichas técnicas u
-                hojas de seguridad (PDF) para descargas futuras.
-              </p>
-            </section>
+          {/* Precio + stock */}
+          <div className="space-y-1">
+            <p className="text-2xl font-semibold text-foreground">
+              {currencyCLP.format(Number(product.price) || 0)}
+            </p>
+            <p className="text-base text-muted-foreground">
+              Stock disponible: {stock} unidades
+            </p>
           </div>
 
-          {/* Botón al final de la card, alineado a la derecha */}
+          {/* Descripción */}
+          <section className="space-y-1">
+            <h2 className="text-lg font-semibold text-foreground">
+              Descripción
+            </h2>
+            <p className="text-base text-foreground leading-relaxed">
+              {product.description ||
+                "Producto de limpieza para uso doméstico y/o industrial."}
+            </p>
+          </section>
+
+          {/* Fichas técnicas */}
+          <section className="space-y-1">
+            <h3 className="text-base font-semibold text-foreground">
+              Fichas técnicas y seguridad
+            </h3>
+            <p className="text-sm text-foreground leading-relaxed">
+              Si el producto lo requiere, se pueden adjuntar fichas técnicas u
+              hojas de seguridad (PDF).
+            </p>
+          </section>
+
+          {/* Botón agregar */}
           <div className="pt-2 flex justify-end">
             <button
               onClick={() => addItem(product)}

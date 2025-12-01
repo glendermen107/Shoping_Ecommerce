@@ -4,6 +4,7 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useCart } from "../../components/cart/cartContext";
 
+// Formato CLP
 const currencyCLP = new Intl.NumberFormat("es-CL", {
   style: "currency",
   currency: "CLP",
@@ -12,14 +13,21 @@ const currencyCLP = new Intl.NumberFormat("es-CL", {
 
 export default function CartPage() {
   const router = useRouter();
-  const { items, totalAmount, totalQuantity, updateItemQuantity, removeItem, clear } =
-    useCart();
+  const {
+    items,
+    totalAmount,
+    totalQuantity,
+    updateItemQuantity,
+    removeItem,
+    clear,
+    isLoading,
+  } = useCart();
 
   const goToCheckout = () => {
     router.push("/checkout");
   };
 
-  // 🧺 ESTADO CUANDO EL CARRITO ESTÁ VACÍO
+  // 🧺 CARRITO VACÍO
   if (!items || items.length === 0) {
     return (
       <section className="mx-auto flex max-w-3xl flex-col items-center px-4 py-12 text-center gap-6">
@@ -36,8 +44,7 @@ export default function CartPage() {
           </div>
 
           <p className="text-base text-emerald-900">
-            Aún no has agregado productos. Explora nuestro catálogo y selecciona
-            los artículos que necesitas para tu hogar o empresa.
+            Aún no has agregado productos. Explora nuestro catálogo y selecciona los artículos que necesitas para tu hogar o empresa.
           </p>
 
           <div className="flex flex-col items-center gap-3 pt-2">
@@ -48,8 +55,7 @@ export default function CartPage() {
               Ver catálogo
             </Link>
             <p className="text-xs text-emerald-900/80">
-              Tip: puedes volver a esta página en cualquier momento desde el
-              botón <strong>Carrito</strong> del menú superior.
+              Tip: puedes volver a esta página en cualquier momento desde el botón <strong>Carrito</strong> del menú superior.
             </p>
           </div>
         </div>
@@ -70,9 +76,7 @@ export default function CartPage() {
       <div className="grid gap-6 md:grid-cols-[minmax(0,1.6fr)_minmax(0,1fr)] items-start">
         {/* Lista de productos */}
         <div className="space-y-4 rounded-3xl border border-border bg-card p-6 shadow-sm">
-          <h2 className="text-lg font-semibold text-foreground">
-            Productos en el carrito
-          </h2>
+          <h2 className="text-lg font-semibold text-foreground">Productos en el carrito</h2>
 
           <ul className="space-y-3 text-sm">
             {items.map((item) => (
@@ -80,42 +84,41 @@ export default function CartPage() {
                 key={item.productId}
                 className="flex flex-col gap-3 rounded-2xl border border-border bg-white px-4 py-3 md:flex-row md:items-center md:justify-between"
               >
+                {/* Información del producto */}
                 <div className="space-y-1">
-                  <p className="text-base font-semibold text-foreground">
-                    {item.name}
-                  </p>
+                  <p className="text-base font-semibold text-foreground">{item.name}</p>
                   <p className="text-xs text-muted-foreground">
                     Precio unitario:{" "}
-                    <span className="font-semibold">
-                      {currencyCLP.format(item.price)}
-                    </span>
+                    <span className="font-semibold">{currencyCLP.format(item.price)}</span>
                   </p>
                 </div>
 
+                {/* Cantidad + total + eliminar */}
                 <div className="flex flex-col items-end gap-2 md:flex-row md:items-center">
                   {/* Cantidad */}
                   <div className="flex items-center gap-2">
                     <button
                       type="button"
                       onClick={() =>
-                        updateItemQuantity(
-                          item.productId,
-                          Math.max(1, item.quantity - 1)
-                        )
+                        updateItemQuantity(item.productId, Math.max(1, item.quantity - 1))
                       }
-                      className="flex h-8 w-8 items-center justify-center rounded-full border border-border bg-white text-lg leading-none hover:bg-emerald-50"
+                      disabled={isLoading}
+                      className="flex h-8 w-8 items-center justify-center rounded-full border border-border bg-white text-lg leading-none hover:bg-emerald-50 disabled:opacity-40"
                     >
                       –
                     </button>
+
                     <span className="min-w-[2rem] text-center text-base font-semibold">
                       {item.quantity}
                     </span>
+
                     <button
                       type="button"
                       onClick={() =>
                         updateItemQuantity(item.productId, item.quantity + 1)
                       }
-                      className="flex h-8 w-8 items-center justify-center rounded-full border border-border bg-white text-lg leading-none hover:bg-emerald-50"
+                      disabled={isLoading}
+                      className="flex h-8 w-8 items-center justify-center rounded-full border border-border bg-white text-lg leading-none hover:bg-emerald-50 disabled:opacity-40"
                     >
                       +
                     </button>
@@ -129,7 +132,8 @@ export default function CartPage() {
                     <button
                       type="button"
                       onClick={() => removeItem(item.productId)}
-                      className="text-xs font-medium text-rose-600 hover:text-rose-700"
+                      disabled={isLoading}
+                      className="text-xs font-medium text-rose-600 hover:text-rose-700 disabled:opacity-40"
                     >
                       Quitar
                     </button>
@@ -139,11 +143,13 @@ export default function CartPage() {
             ))}
           </ul>
 
+          {/* Acciones del carrito */}
           <div className="flex flex-wrap items-center justify-between gap-3 pt-3">
             <button
               type="button"
               onClick={clear}
-              className="text-sm font-medium text-rose-600 hover:text-rose-700"
+              disabled={isLoading}
+              className="text-sm font-medium text-rose-600 hover:text-rose-700 disabled:opacity-40"
             >
               Vaciar carrito
             </button>
@@ -166,12 +172,14 @@ export default function CartPage() {
               <span>Productos</span>
               <span className="font-semibold">{totalQuantity}</span>
             </p>
+
             <p className="flex items-center justify-between">
               <span>Total</span>
               <span className="text-xl font-semibold text-emerald-700">
                 {currencyCLP.format(totalAmount)}
               </span>
             </p>
+
             <p className="text-xs text-muted-foreground">
               El costo de despacho se coordina y confirma posteriormente.
             </p>

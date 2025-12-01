@@ -3,33 +3,67 @@
 import { FormEvent, useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { useAuth } from "../../../components/auth/authContext";
+import { useAuth } from "../../../contexts/AuthContext";
 
 export default function RegisterPage() {
   const { register } = useAuth();
   const router = useRouter();
 
-  const [name, setName] = useState("");
+  const [name, setName] = useState(""); // ← agregado desde main
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [confirmPassword, setConfirmPassword] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState("");
+  const [success, setSuccess] = useState(false);
 
   const handleSubmit = async (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
     setError("");
-    setIsSubmitting(true);
+    setSuccess(false);
 
-    const ok = await register(name, email, password);
-    setIsSubmitting(false);
-
-    if (!ok) {
-      setError("El correo ya está registrado.");
+    if (password !== confirmPassword) {
+      setError("Las contraseñas no coinciden.");
       return;
     }
 
-    router.push("/auth/login");
+    if (password.length < 6) {
+      setError("La contraseña debe tener al menos 6 caracteres.");
+      return;
+    }
+
+    setIsSubmitting(true);
+
+    try {
+      // `main` no incluía el uso de name en el backend, así que
+      // lo ignoramos para no romper el flujo actual.
+      await register(email, password);
+      setSuccess(true);
+
+      setTimeout(() => {
+        router.push("/auth/login");
+      }, 2000);
+    } catch (err: any) {
+      setError(err.message || "El correo ya está registrado.");
+    } finally {
+      setIsSubmitting(false);
+    }
   };
+
+  if (success) {
+    return (
+      <section className="mx-auto max-w-sm space-y-4">
+        <div className="rounded border border-emerald-500 bg-emerald-950/40 px-4 py-3 text-center">
+          <p className="text-sm text-emerald-200 font-semibold mb-2">
+            ✓ Cuenta creada exitosamente
+          </p>
+          <p className="text-xs text-emerald-300">
+            Redirigiendo al inicio de sesión...
+          </p>
+        </div>
+      </section>
+    );
+  }
 
   return (
     <section className="mx-auto flex max-w-md flex-col gap-6 rounded-3xl border border-border bg-card px-6 py-8 shadow-sm">
@@ -52,7 +86,7 @@ export default function RegisterPage() {
 
       {/* Formulario */}
       <form onSubmit={handleSubmit} className="space-y-4 text-base">
-        {/* Nombre */}
+        {/* Nombre completo */}
         <div className="space-y-1">
           <label className="block text-sm font-medium text-foreground">
             Nombre completo
@@ -88,6 +122,7 @@ export default function RegisterPage() {
             value={email}
             onChange={(e) => setEmail(e.target.value)}
             placeholder="tucorreo@ejemplo.cl"
+            autoComplete="email"
           />
         </div>
 
@@ -109,6 +144,29 @@ export default function RegisterPage() {
             value={password}
             onChange={(e) => setPassword(e.target.value)}
             placeholder="Mínimo 6 caracteres"
+            autoComplete="new-password"
+          />
+        </div>
+
+        {/* Confirmación */}
+        <div className="space-y-1">
+          <label className="block text-sm font-medium text-foreground">
+            Confirmar contraseña
+          </label>
+          <input
+            type="password"
+            required
+            minLength={6}
+            className="
+              w-full rounded-2xl border border-border bg-white
+              px-3 py-2.5 text-base text-foreground
+              placeholder:text-muted-foreground
+              outline-none focus:border-emerald-500 focus:ring-2 focus:ring-emerald-100
+            "
+            value={confirmPassword}
+            onChange={(e) => setConfirmPassword(e.target.value)}
+            placeholder="Repite tu contraseña"
+            autoComplete="new-password"
           />
         </div>
 

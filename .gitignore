@@ -29,3 +29,8 @@ docker-compose.override.yml
 
 # Otros
 Comandos_git.pdf
+web/playwright-report/
+web/test-results/
+
+.Kiro
+infra

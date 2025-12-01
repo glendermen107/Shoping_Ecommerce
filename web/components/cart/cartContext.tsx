@@ -8,15 +8,15 @@ import {
   useState,
   type ReactNode,
 } from "react";
-import type { CartItem, Product } from "../../lib/types";
+import type { CartItem, Product, CartResponse } from "../../lib/types";
 import {
-  getCart,
-  addToCart as addToCartLib,
-  updateQuantity as updateQuantityLib,
-  removeFromCart as removeFromCartLib,
-  clearCart as clearCartLib,
-  getCartTotals,
-} from "../../lib/cart";
+  addToCart as addToCartApi,
+  getCart as getCartApi,
+  removeFromCart as removeFromCartApi,
+  clearCart as clearCartApi,
+  updateCartItemQuantity as updateCartItemQuantityApi,
+} from "../../lib/cartApi";
+import { useAuth } from "../../contexts/AuthContext";
 
 type NotificationType = "success" | "info" | "error";
 
@@ -28,25 +28,53 @@ type CartNotification = {
 type CartContextValue = {
   items: CartItem[];
   totalQuantity: number;
+  subtotal: number;
+  taxes: number;
   totalAmount: number;
-  addItem: (product: Product, quantity?: number) => void;
-  updateItemQuantity: (productId: string, quantity: number) => void;
-  removeItem: (productId: string) => void;
-  clear: () => void;
+  isLoading: boolean;
+  addItem: (product: Product, quantity?: number) => Promise<void>;
+  updateItemQuantity: (productId: number, quantity: number) => Promise<void>;
+  removeItem: (productId: number) => Promise<void>;
+  clear: () => Promise<void>;
+  refreshCart: () => Promise<void>;
 };
 
 const CartContext = createContext<CartContextValue | undefined>(undefined);
 
 export function CartProvider({ children }: { children: ReactNode }) {
-  const [items, setItems] = useState<CartItem[]>([]);
+  const [cartData, setCartData] = useState<CartResponse>({
+    items: [],
+    subtotal: 0,
+    taxes: 0,
+    total: 0,
+  });
+  const [isLoading, setIsLoading] = useState(false);
   const [notification, setNotification] = useState<CartNotification>(null);
+  const { user } = useAuth();
 
-  // Cargar carrito desde localStorage al montar
+  // Cargar carrito al montar y cuando cambia el usuario
   useEffect(() => {
-    setItems(getCart());
-  }, []);
+    loadCart();
+  }, [user]);
 
-  const { totalQuantity, totalAmount } = getCartTotals(items);
+  const loadCart = async () => {
+    try {
+      setIsLoading(true);
+      const cart = await getCartApi();
+      setCartData(cart);
+    } catch (error) {
+      console.error("Error loading cart:", error);
+      // En caso de error, mantener carrito vacío
+      setCartData({
+        items: [],
+        subtotal: 0,
+        taxes: 0,
+        total: 0,
+      });
+    } finally {
+      setIsLoading(false);
+    }
+  };
 
   const showNotification = (message: string, type: NotificationType) => {
     setNotification({ message, type });
@@ -58,46 +86,102 @@ export function CartProvider({ children }: { children: ReactNode }) {
     }, 1500);
   };
 
-  const addItem = (product: Product, quantity = 1) => {
-    const updated = addToCartLib(product, quantity);
-    setItems(updated);
-    showNotification("Producto agregado al carrito", "success");
+  const addItem = async (product: Product, quantity = 1) => {
+    try {
+      setIsLoading(true);
+      const updatedCart = await addToCartApi(product.id, quantity);
+      setCartData(updatedCart);
+      showNotification("Producto agregado al carrito", "success");
+    } catch (error: any) {
+      console.error("Error adding item:", error);
+      showNotification(
+        error.message || "Error al agregar producto",
+        "error"
+      );
+    } finally {
+      setIsLoading(false);
+    }
   };
 
-  const updateItemQuantity = (productId: string, quantity: number) => {
-    const updated = updateQuantityLib(productId, quantity);
-    setItems(updated);
-    showNotification("Cantidad actualizada", "info");
+  const updateItemQuantity = async (productId: number, quantity: number) => {
+    try {
+      setIsLoading(true);
+      const updatedCart = await updateCartItemQuantityApi(productId, quantity);
+      setCartData(updatedCart);
+      showNotification("Cantidad actualizada", "info");
+    } catch (error: any) {
+      console.error("Error updating quantity:", error);
+      showNotification(
+        error.message || "Error al actualizar cantidad",
+        "error"
+      );
+    } finally {
+      setIsLoading(false);
+    }
   };
 
-  const removeItem = (productId: string) => {
-    const updated = removeFromCartLib(productId);
-    setItems(updated);
-    showNotification("Producto eliminado del carrito", "info");
+  const removeItem = async (productId: number) => {
+    try {
+      setIsLoading(true);
+      const updatedCart = await removeFromCartApi(productId);
+      setCartData(updatedCart);
+      showNotification("Producto eliminado del carrito", "info");
+    } catch (error: any) {
+      console.error("Error removing item:", error);
+      showNotification(
+        error.message || "Error al eliminar producto",
+        "error"
+      );
+    } finally {
+      setIsLoading(false);
+    }
   };
 
-  const clear = () => {
-    clearCartLib();
-    setItems([]);
-    showNotification("Carrito vaciado", "info");
+  const clear = async () => {
+    try {
+      setIsLoading(true);
+      await clearCartApi();
+      setCartData({
+        items: [],
+        subtotal: 0,
+        taxes: 0,
+        total: 0,
+      });
+      showNotification("Carrito vaciado", "info");
+    } catch (error: any) {
+      console.error("Error clearing cart:", error);
+      showNotification(
+        error.message || "Error al vaciar carrito",
+        "error"
+      );
+    } finally {
+      setIsLoading(false);
+    }
   };
+
+  const refreshCart = async () => {
+    await loadCart();
+  };
+
+  // Calcular cantidad total de items
+  const totalQuantity = cartData.items.reduce(
+    (sum, item) => sum + item.quantity,
+    0
+  );
 
   const value: CartContextValue = {
-    items,
+    items: cartData.items,
     totalQuantity,
-    totalAmount,
+    subtotal: cartData.subtotal,
+    taxes: cartData.taxes,
+    totalAmount: cartData.total,
+    isLoading,
     addItem,
     updateItemQuantity,
     removeItem,
     clear,
+    refreshCart,
   };
-
-  const bgColor =
-    notification?.type === "success"
-      ? "bg-emerald-600"
-      : notification?.type === "error"
-      ? "bg-rose-600"
-      : "bg-slate-800";
 
   return (
     <CartContext.Provider value={value}>
@@ -111,17 +195,14 @@ export function CartProvider({ children }: { children: ReactNode }) {
               pointer-events-auto rounded-xl border backdrop-blur-md px-4 py-3 shadow-xl
               flex items-center gap-3 text-sm font-medium text-white
               transition-all duration-300
-              ${
-                notification.type === "success" &&
-                "bg-gradient-to-r from-emerald-600/90 to-emerald-500/90 border-emerald-400/40"
+              ${notification.type === "success" &&
+              "bg-gradient-to-r from-emerald-600/90 to-emerald-500/90 border-emerald-400/40"
               }
-              ${
-                notification.type === "info" &&
-                "bg-gradient-to-r from-sky-600/90 to-sky-500/90 border-sky-400/40"
+              ${notification.type === "info" &&
+              "bg-gradient-to-r from-sky-600/90 to-sky-500/90 border-sky-400/40"
               }
-              ${
-                notification.type === "error" &&
-                "bg-gradient-to-r from-rose-600/90 to-rose-500/90 border-rose-400/40"
+              ${notification.type === "error" &&
+              "bg-gradient-to-r from-rose-600/90 to-rose-500/90 border-rose-400/40"
               }
             `}
           >
@@ -136,8 +217,6 @@ export function CartProvider({ children }: { children: ReactNode }) {
           </div>
         </div>
       )}
-
-
     </CartContext.Provider>
   );
 }

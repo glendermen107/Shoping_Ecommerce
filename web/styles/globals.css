@@ -172,7 +172,8 @@
 
 @layer base {
   html {
-    font-size: 18px; /* antes era 16 */
+    font-size: 18px;
+    /* antes era 16 */
   }
 
   body {

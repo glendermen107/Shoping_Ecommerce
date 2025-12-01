@@ -15,10 +15,6 @@ async function bootstrap() {
       transform: true, // Transforma los tipos de datos (e.g., string a number)
     }),
   );
-  // ...
-  const port = process.env.PORT || 3000;
-  await app.listen(port);
-  console.log(`Application is running on: ${await app.getUrl()}`);
 
   // Habilitar CORS para el frontend en Next (localhost:3000)
   app.enableCors({

@@ -28,8 +28,8 @@ export class CreateProductDto {
   @Min(0)
   readonly stock: number;
 
-  @IsUrl()
   @IsOptional()
+  @IsUrl()
   readonly imageUrl?: string;
 
   @IsInt()

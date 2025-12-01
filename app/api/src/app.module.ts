@@ -14,8 +14,10 @@ import { ProductsModule } from './products/products.module';
 import { RedisModule } from './redis/redis.module';
 import { CartModule } from './cart/cart.module';
 import { AuthModule } from './auth/auth.module';
-import { OrdersModule } from './orders/orders.module'; // Asegúrate de que OrdersModule esté importado
+import { OrdersModule } from './orders/orders.module';
 import { SeedModule } from './seed/seed.module';
+import { CategoriesModule } from './categories/categories.module';
+import { MediaModule } from './media/media.module';
 
 @Module({
   imports: [
@@ -42,8 +44,10 @@ import { SeedModule } from './seed/seed.module';
     AuthModule,
     OrdersModule,
     SeedModule,
+    CategoriesModule,
+    MediaModule,
   ],
   controllers: [AppController],
   providers: [AppService],
 })
-export class AppModule {}
+export class AppModule { }

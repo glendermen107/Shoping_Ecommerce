@@ -1,38 +1,47 @@
 "use client";
 
-import { FormEvent, useState } from "react";
+import { FormEvent, useState, useEffect } from "react";
 import Link from "next/link";
-import { useRouter } from "next/navigation";
-import { useAuth } from "../../../components/auth/authContext";
+import { useRouter, useSearchParams } from "next/navigation";
+import { useAuth } from "../../../contexts/AuthContext";
 
 export default function LoginPage() {
-  const { login } = useAuth();
+  const { login, isAuthenticated } = useAuth();
   const router = useRouter();
+  const searchParams = useSearchParams();
 
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState("");
 
+  useEffect(() => {
+    if (isAuthenticated) {
+      const redirect = searchParams.get("redirect") || "/profile";
+      router.push(redirect);
+    }
+  }, [isAuthenticated, router, searchParams]);
+
   const handleSubmit = async (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
     setError("");
     setIsSubmitting(true);
 
-    const ok = await login(email, password);
-    setIsSubmitting(false);
+    try {
+      await login(email, password);
 
-    if (!ok) {
-      setError("Correo o contraseña incorrectos.");
-      return;
+      const redirect = searchParams.get("redirect") || "/profile";
+      router.push(redirect);
+
+    } catch (err: any) {
+      setError(err.message || "Correo o contraseña incorrectos.");
+    } finally {
+      setIsSubmitting(false);
     }
-
-    router.push("/profile");
   };
 
   return (
     <section className="mx-auto flex max-w-md flex-col gap-6 rounded-3xl border border-border bg-card px-6 py-8 shadow-sm">
-      {/* Encabezado */}
       <header className="space-y-1">
         <h1 className="text-2xl font-semibold text-foreground">Ingresar</h1>
         <p className="text-base text-muted-foreground">
@@ -40,14 +49,12 @@ export default function LoginPage() {
         </p>
       </header>
 
-      {/* Error */}
       {error && (
         <p className="rounded-2xl border border-rose-300 bg-rose-50 px-4 py-2 text-sm text-rose-700">
           {error}
         </p>
       )}
 
-      {/* Formulario */}
       <form onSubmit={handleSubmit} className="space-y-4 text-base">
         <div className="space-y-1">
           <label className="block text-sm font-medium text-foreground">
@@ -65,6 +72,7 @@ export default function LoginPage() {
             value={email}
             onChange={(e) => setEmail(e.target.value)}
             placeholder="tucorreo@ejemplo.cl"
+            autoComplete="email"
           />
         </div>
 
@@ -84,6 +92,7 @@ export default function LoginPage() {
             value={password}
             onChange={(e) => setPassword(e.target.value)}
             placeholder="••••••••"
+            autoComplete="current-password"
           />
         </div>
 
@@ -101,7 +110,6 @@ export default function LoginPage() {
         </button>
       </form>
 
-      {/* Enlace registro */}
       <p className="text-sm text-muted-foreground">
         ¿No tienes cuenta?{" "}
         <Link
