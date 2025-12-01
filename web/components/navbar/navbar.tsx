@@ -5,7 +5,7 @@ import Link from "next/link";
 import Image from "next/image";
 import { usePathname, useRouter } from "next/navigation";
 import { useCart } from "../cart/cartContext";
-import { useAuth } from "../../contexts/AuthContext";
+import { useAuth } from "../auth/authContext"; // ← versión MAIN correcta
 
 const links = [
   { href: "/", label: "Inicio" },
@@ -19,6 +19,7 @@ export default function Navbar() {
   const router = useRouter();
   const [isOpen, setIsOpen] = useState(false);
   const [showUserMenu, setShowUserMenu] = useState(false);
+
   const { totalQuantity } = useCart();
   const { user, isAuthenticated, isAdmin, logout } = useAuth();
 
@@ -31,7 +32,6 @@ export default function Navbar() {
     router.push("/");
   };
 
-  // Obtener iniciales del email
   const getInitials = (email: string) => {
     return email.substring(0, 2).toUpperCase();
   };
@@ -60,7 +60,6 @@ export default function Navbar() {
 
         {/* DESKTOP MENU */}
         <div className="hidden items-center gap-6 md:flex">
-          {/* Menú "skew" estilo ejemplo */}
           <ul className="flex items-center gap-2">
             {links.map((link) => {
               const active = pathname === link.href;
@@ -85,7 +84,7 @@ export default function Navbar() {
             })}
           </ul>
 
-          {/* Usuario autenticado o Login */}
+          {/* Usuario autenticado o login (DESKTOP) */}
           {isAuthenticated && user ? (
             <div className="relative">
               <button
@@ -97,16 +96,21 @@ export default function Navbar() {
                 </span>
                 <span className="max-w-[120px] truncate">{user.email}</span>
                 <svg
-                  className={`h-4 w-4 transition-transform ${showUserMenu ? 'rotate-180' : ''}`}
+                  className={`h-4 w-4 transition-transform ${showUserMenu ? "rotate-180" : ""
+                    }`}
                   fill="none"
                   stroke="currentColor"
                   viewBox="0 0 24 24"
                 >
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2}
+                    d="M19 9l-7 7-7-7"
+                  />
                 </svg>
               </button>
 
-              {/* Dropdown menu */}
               {showUserMenu && (
                 <div className="absolute right-0 mt-2 w-48 rounded-lg border border-emerald-200 bg-white shadow-lg">
                   <div className="py-1">
@@ -117,6 +121,7 @@ export default function Navbar() {
                     >
                       Mi perfil
                     </Link>
+
                     {isAdmin && (
                       <Link
                         href="/admin"
@@ -126,7 +131,9 @@ export default function Navbar() {
                         Panel de admin
                       </Link>
                     )}
+
                     <hr className="my-1 border-emerald-100" />
+
                     <button
                       onClick={handleLogout}
                       className="block w-full px-4 py-2 text-left text-sm text-red-600 hover:bg-red-50"
@@ -151,16 +158,15 @@ export default function Navbar() {
             href="/cart"
             className="inline-flex items-center gap-2 rounded-full bg-emerald-600 px-4 py-1.5 text-xs font-semibold text-white shadow-sm hover:bg-emerald-500"
           >
-            🛒 Carrito
+            🛒Carrito
             <span className="flex h-5 w-5 items-center justify-center rounded-full bg-white/15 text-[10px] font-bold">
               {totalQuantity}
             </span>
           </Link>
         </div>
 
-        {/* MOBILE / TABLET CHICA */}
+        {/* MOBILE menu + login + cart */}
         <div className="flex items-center gap-2 md:hidden">
-          {/* Usuario o Login en mobile */}
           {isAuthenticated && user ? (
             <Link
               href="/profile"
@@ -177,7 +183,7 @@ export default function Navbar() {
             </Link>
           )}
 
-          {/* Carrito */}
+          {/* Carrito mobile */}
           <Link
             href="/cart"
             className="flex items-center gap-1 rounded-full border border-emerald-300 bg-emerald-50 px-3 py-1 text-xs font-medium text-emerald-700 shadow-sm hover:bg-emerald-100"
@@ -188,7 +194,7 @@ export default function Navbar() {
             </span>
           </Link>
 
-          {/* Botón hamburguesa */}
+          {/* Hamburguesa */}
           <button
             type="button"
             onClick={toggleMenu}
@@ -197,23 +203,26 @@ export default function Navbar() {
           >
             <div className="space-y-1">
               <span
-                className={`block h-0.5 w-5 rounded-full bg-emerald-900 transition-transform ${isOpen ? "translate-y-1.5 rotate-45" : ""
-                  }`}
+                className={`block h-0.5 w-5 rounded-full bg-emerald-900 transition-transform ${
+                  isOpen ? "translate-y-1.5 rotate-45" : ""
+                }`}
               />
               <span
-                className={`block h-0.5 w-5 rounded-full bg-emerald-900 transition-opacity ${isOpen ? "opacity-0" : "opacity-100"
-                  }`}
+                className={`block h-0.5 w-5 rounded-full bg-emerald-900 transition-opacity ${
+                  isOpen ? "opacity-0" : "opacity-100"
+                }`}
               />
               <span
-                className={`block h-0.5 w-5 rounded-full bg-emerald-900 transition-transform ${isOpen ? "-translate-y-1.5 -rotate-45" : ""
-                  }`}
+                className={`block h-0.5 w-5 rounded-full bg-emerald-900 transition-transform ${
+                  isOpen ? "-translate-y-1.5 -rotate-45" : ""
+                }`}
               />
             </div>
           </button>
         </div>
       </nav>
 
-      {/* MENÚ MÓVIL */}
+      {/* MOBILE MENU */}
       {isOpen && (
         <div className="border-t border-emerald-100 bg-white/95 shadow-sm md:hidden">
           <div className="flex flex-col gap-2 px-5 py-4 text-sm">
@@ -236,10 +245,11 @@ export default function Navbar() {
               );
             })}
 
-            {/* Opciones de usuario en mobile */}
+            {/* User options mobile */}
             {isAuthenticated && (
               <>
                 <hr className="my-2 border-emerald-100" />
+
                 <Link
                   href="/profile"
                   onClick={closeMenu}
@@ -247,6 +257,7 @@ export default function Navbar() {
                 >
                   Mi perfil
                 </Link>
+
                 {isAdmin && (
                   <Link
                     href="/admin"
@@ -256,6 +267,7 @@ export default function Navbar() {
                     Panel de admin
                   </Link>
                 )}
+
                 <button
                   onClick={() => {
                     handleLogout();

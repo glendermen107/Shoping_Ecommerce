@@ -1,9 +1,12 @@
+// web/app/catalogo/page.tsx
 import ProductGrid from "../../components/products/productGrid";
 import OffersCarousel from "../../components/carousel/offersCarousel";
 import PriceRangeFilter from "../../components/carousel/priceRangeFilter";
-import { fetchProducts } from "../../lib/api";
 
-type catalogoPageProps = {
+import { productsApi } from "../../lib/productsApi";
+import { categoriesApi } from "../../lib/categoriesApi";
+
+type CatalogoPageProps = {
   searchParams?: {
     q?: string;
     cat?: string;
@@ -14,37 +17,35 @@ type catalogoPageProps = {
   };
 };
 
-export default async function catalogoPage({ searchParams }: catalogoPageProps) {
+export default async function CatalogoPage({ searchParams }: CatalogoPageProps) {
+  // Parámetros de búsqueda
   const search = searchParams?.q?.toLowerCase() ?? "";
   const categorySlug = searchParams?.cat ?? "";
-
   const onlyFeatured = searchParams?.featured === "1";
   const onlyOnSale = searchParams?.onSale === "1";
-  const minPrice = searchParams?.minPrice
-    ? Number(searchParams.minPrice)
-    : undefined;
-  const maxPrice = searchParams?.maxPrice
-    ? Number(searchParams.maxPrice)
-    : undefined;
 
-  const products = await fetchProducts();
+  const minPrice = searchParams?.minPrice ? Number(searchParams.minPrice) : undefined;
+  const maxPrice = searchParams?.maxPrice ? Number(searchParams.maxPrice) : undefined;
 
-  // Nos aseguramos de trabajar siempre con número
+  // 🔥 Obtener productos y categorías desde tu API nueva
+  const [products, categories] = await Promise.all([
+    productsApi.list(),
+    categoriesApi.list()
+  ]);
+
+  // Max price global (para slider)
   const prices = products.map((p) => Number(p.price) || 0);
   const globalMaxPrice = prices.length > 0 ? Math.max(...prices) : 10000;
 
-  // FILTROS
+  // ------------------------
+  // FILTRADO DE PRODUCTOS
+  // ------------------------
   const filteredProducts = products.filter((product) => {
     const name = product.name.toLowerCase();
     const price = Number(product.price) || 0;
 
     const matchesSearch = search ? name.includes(search) : true;
-
-    // Filtrar por categoría usando el slug de la categoría
-    const matchesCategory = categorySlug
-      ? product.category?.slug === categorySlug
-      : true;
-
+    const matchesCategory = categorySlug ? product.category?.slug === categorySlug : true;
     const matchesFeatured = onlyFeatured ? !!product.isFeatured : true;
     const matchesOnSale = onlyOnSale ? !!product.isOnSale : true;
 
@@ -77,44 +78,41 @@ export default async function catalogoPage({ searchParams }: catalogoPageProps) 
   }
 
   return (
-    <section className="space-y-6">
-      {/* Encabezado general */}
-      <header className="space-y-3">
-        <h1 className="text-2xl font-semibold text-emerald-400">
-          Catálogo
-        </h1>
-        <p className="text-slate-300 text-sm">
-          Explora nuestros productos de limpieza para hogar y empresas.
+    <section className="mx-auto max-w-7xl px-4 py-6 space-y-6">
+      {/* Encabezado */}
+      <header className="space-y-2">
+        <h1 className="text-3xl font-semibold text-foreground">Catálogo</h1>
+        <p className="text-base text-foreground">
+          Explora nuestra selección de productos de limpieza.
         </p>
       </header>
 
-      {/* LAYOUT PRINCIPAL EN DOS COLUMNAS */}
-      <div className="flex gap-6">
-        {/* ───────────── SIDEBAR IZQUIERDO ───────────── */}
+      <div className="mt-2 flex flex-col gap-6 md:flex-row">
+        {/* SIDEBAR */}
         <aside
           className="
-              hidden md:block
-              w-[300px]
-              rounded-3xl border border-emerald-200 bg-emerald-50
-              p-5 space-y-6 text-sm shadow-md text-black
-            "
+            hidden md:block
+            w-64
+            rounded-3xl border border-emerald-200 bg-emerald-50
+            p-5 space-y-6 text-sm shadow-md text-emerald-900
+            sticky top-24
+            max-h-[90vh]
+            overflow-y-auto
+          "
         >
-          {/* Título / descripción corta */}
           <div className="space-y-1">
             <p className="text-xs font-semibold uppercase tracking-wide text-emerald-800">
               Filtros
             </p>
-            <p className="text-[11px] text-emerald-900">
-              Ajusta los filtros para encontrar el producto que necesitas.
+            <p className="text-xs">
+              Ajusta los filtros para encontrar el producto ideal.
             </p>
           </div>
 
           <form action="/catalogo" className="space-y-5">
             {/* BUSCAR */}
             <div className="space-y-2">
-              <p className="text-xs font-semibold text-emerald-800">
-                Buscar
-              </p>
+              <p className="text-xs font-semibold text-emerald-800">Buscar</p>
               <input
                 type="text"
                 name="q"
@@ -122,7 +120,7 @@ export default async function catalogoPage({ searchParams }: catalogoPageProps) 
                 placeholder="Ej: cloro..."
                 className="
                   w-full rounded-full border border-emerald-200 bg-white 
-                  px-3 py-1.5 text-xs text-black 
+                  px-3 py-2 text-sm 
                   placeholder:text-emerald-600
                   outline-none focus:border-emerald-500
                 "
@@ -131,33 +129,32 @@ export default async function catalogoPage({ searchParams }: catalogoPageProps) 
 
             <hr className="border-emerald-200" />
 
-            {/* CATEGORÍA */}
+            {/* CATEGORÍAS DINÁMICAS */}
             <div className="space-y-2">
-              <p className="text-xs font-semibold text-emerald-800">
-                Categoría
-              </p>
+              <p className="text-xs font-semibold text-emerald-800">Categoría</p>
 
-              <div className="flex flex-col gap-2 text-xs text-black">
-                {[
-                  { key: "", label: "Todos" },
-                  { key: "cloro", label: "Cloro y desinfectantes" },
-                  { key: "hogar", label: "Limpieza del hogar" },
-                  { key: "personal", label: "Limpieza personal" },
-                ].map((opt) => (
-                  <label
-                    key={opt.key}
-                    className="flex items-center gap-2 cursor-pointer"
-                  >
+              <div className="flex flex-col gap-2 text-sm">
+                <label className="flex items-center gap-2 cursor-pointer">
+                  <input
+                    type="radio"
+                    name="cat"
+                    value=""
+                    defaultChecked={!categorySlug}
+                    className="h-4 w-4 text-emerald-600"
+                  />
+                  Todos
+                </label>
+
+                {categories.map((cat) => (
+                  <label key={cat.id} className="flex items-center gap-2 cursor-pointer">
                     <input
                       type="radio"
                       name="cat"
-                      value={opt.key}
-                      defaultChecked={
-                        categorySlug === opt.key || (!categorySlug && opt.key === "")
-                      }
-                      className="h-3 w-3 text-emerald-600"
+                      value={cat.slug}
+                      defaultChecked={categorySlug === cat.slug}
+                      className="h-4 w-4 text-emerald-600"
                     />
-                    <span>{opt.label}</span>
+                    {cat.name}
                   </label>
                 ))}
               </div>
@@ -165,54 +162,47 @@ export default async function catalogoPage({ searchParams }: catalogoPageProps) 
 
             <hr className="border-emerald-200" />
 
-            {/* TIPO DE PRODUCTO */}
+            {/* TIPO */}
             <div className="space-y-2">
-              <p className="text-xs font-semibold text-emerald-800">
-                Tipo de producto
-              </p>
+              <p className="text-xs font-semibold text-emerald-800">Tipo de producto</p>
 
-              <label className="flex items-center gap-2 text-xs text-black cursor-pointer">
+              <label className="flex items-center gap-2 cursor-pointer">
                 <input
                   type="checkbox"
                   name="featured"
                   value="1"
                   defaultChecked={onlyFeatured}
-                  className="h-3 w-3 text-emerald-600"
+                  className="h-4 w-4 text-emerald-600"
                 />
-                <span>Solo destacados</span>
+                Solo destacados
               </label>
 
-              <label className="flex items-center gap-2 text-xs text-black cursor-pointer">
+              <label className="flex items-center gap-2 cursor-pointer">
                 <input
                   type="checkbox"
                   name="onSale"
                   value="1"
                   defaultChecked={onlyOnSale}
-                  className="h-3 w-3 text-emerald-600"
+                  className="h-4 w-4 text-emerald-600"
                 />
-                <span>Solo en oferta</span>
+                Solo en oferta
               </label>
             </div>
 
             <hr className="border-emerald-200" />
 
-            {/* PRECIO con slider */}
+            {/* PRECIO */}
             <PriceRangeFilter
               maxLimit={globalMaxPrice}
-              initialMaxPrice={
-                searchParams?.maxPrice
-                  ? Number(searchParams.maxPrice)
-                  : undefined
-              }
+              initialMaxPrice={maxPrice}
             />
 
-            {/* BOTONES */}
-            <div className="flex items-center justify-between pt-1">
+            <div className="flex items-center justify-between pt-2">
               <button
                 type="submit"
                 className="
-                  rounded-full bg-emerald-600 
-                  px-4 py-1.5 text-xs font-medium text-white 
+                  rounded-full bg-emerald-600
+                  px-4 py-2 text-xs font-semibold text-white
                   hover:bg-emerald-500 transition
                 "
               >
@@ -221,7 +211,7 @@ export default async function catalogoPage({ searchParams }: catalogoPageProps) 
 
               <a
                 href="/catalogo"
-                className="text-[11px] text-emerald-700 hover:text-emerald-900"
+                className="text-xs text-emerald-700 hover:text-emerald-900"
               >
                 Limpiar
               </a>
@@ -229,29 +219,24 @@ export default async function catalogoPage({ searchParams }: catalogoPageProps) 
           </form>
         </aside>
 
-
-        {/* ───────────── CONTENIDO PRINCIPAL ───────────── */}
+        {/* CONTENIDO PRINCIPAL */}
         <div className="flex-1 space-y-6">
-          {/* Contador */}
-          <p className="text-xs text-slate-400">
+          <p className="text-sm text-muted-foreground">
             {totalCount === 0
               ? "No se encontraron productos."
-              : `Mostrando ${totalCount} producto${totalCount === 1 ? "" : "s"
-              }`}
+              : `Mostrando ${totalCount} producto${totalCount === 1 ? "" : "s"}`}
           </p>
 
-          {/* Carrusel arriba */}
           {featuredProducts.length > 0 && (
             <OffersCarousel
               products={featuredProducts}
-              title="Ofertas y productos destacados"
+              title="Ofertas y destacados"
               subtitle="Selección especial para ti"
             />
           )}
 
-          {/* Grid abajo */}
           <div className="space-y-2">
-            <h2 className="text-lg font-semibold text-emerald-400">
+            <h2 className="text-xl font-semibold text-foreground">
               Productos disponibles
             </h2>
 

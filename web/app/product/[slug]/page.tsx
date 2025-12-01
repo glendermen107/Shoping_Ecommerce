@@ -1,142 +1,173 @@
-// web/app/product/[slug]/page.tsx
+"use client";
+
+import { useParams } from "next/navigation";
+import { useEffect, useState } from "react";
+import type { Product } from "../../../lib/types";
+import { fetchProducts } from "../../../lib/api";
 import Link from "next/link";
-import { fetchProductBySlug } from "../../../lib/api";
-import AddToCartButton from "../../../components/products/addToCartButton";
+import { useCart } from "../../../components/cart/cartContext";
 
-type ProductPageProps = {
-  params: { slug: string };
-};
+// Formato moneda CLP
+const currencyCLP = new Intl.NumberFormat("es-CL", {
+  style: "currency",
+  currency: "CLP",
+  maximumFractionDigits: 0,
+});
 
-function formatPriceCLP(value: number) {
-  if (Number.isNaN(value)) return "$0";
-  return value.toLocaleString("es-CL", {
-    style: "currency",
-    currency: "CLP",
-    maximumFractionDigits: 0,
-  });
-}
+export default function ProductPage() {
+  const { slug } = useParams();
+  const { addItem } = useCart();
 
-export default async function ProductPage({ params }: ProductPageProps) {
-  const product = await fetchProductBySlug(params.slug);
+  const [product, setProduct] = useState<Product | null>(null);
+  const [loading, setLoading] = useState(true);
 
-  // Si no se encuentra el producto, mostramos mensaje
-  if (!product) {
+  useEffect(() => {
+    const load = async () => {
+      try {
+        const products = await fetchProducts();
+        const found = products.find((p) => p.slug === slug) ?? null;
+        setProduct(found);
+      } catch (err) {
+        console.error("Error cargando producto:", err);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    load();
+  }, [slug]);
+
+  // 🌀 Cargando
+  if (loading) {
     return (
-      <section className="space-y-6">
-        <nav className="text-xs text-neutral-500">
-          <Link href="/catalogo" className="underline">
-            Catálogo
-          </Link>{" "}
-          / <span className="text-neutral-700">Producto no encontrado</span>
-        </nav>
-        <div className="text-center py-12">
-          <h1 className="text-2xl font-semibold text-neutral-700 mb-4">
-            Producto no encontrado
-          </h1>
-          <p className="text-neutral-500 mb-6">
-            El producto que buscas no existe o ha sido eliminado.
-          </p>
-          <Link
-            href="/catalogo"
-            className="inline-block px-6 py-2 bg-emerald-600 text-white rounded-full hover:bg-emerald-500 transition"
-          >
-            Volver al catálogo
-          </Link>
-        </div>
+      <section className="mx-auto max-w-6xl px-4 py-8">
+        <p className="text-base text-muted-foreground">Cargando producto…</p>
       </section>
     );
   }
 
+  // ❌ Producto no encontrado
+  if (!product) {
+    return (
+      <section className="mx-auto max-w-6xl px-4 py-8 space-y-4">
+        <p className="text-base text-muted-foreground">
+          Producto no encontrado.
+        </p>
+
+        <Link
+          href="/catalogo"
+          className="inline-block text-base text-emerald-600 hover:text-emerald-700"
+        >
+          ← Volver al catálogo
+        </Link>
+      </section>
+    );
+  }
+
+  const stock = product.stock ?? 0;
+  const categoryName = product.category?.name ?? "Sin categoría";
+
   return (
-    <section className="space-y-6">
-      {/* Migas de pan */}
-      <nav className="text-xs text-neutral-500">
-        <Link href="/catalogo" className="underline">
+    <section className="mx-auto max-w-6xl px-4 py-8 space-y-6">
+      {/* Breadcrumbs */}
+      <nav className="text-sm text-muted-foreground">
+        <Link href="/catalogo" className="hover:underline">
           Catálogo
-        </Link>{" "}
-        / <span className="text-neutral-700">{product.name}</span>
+        </Link>
+        <span className="mx-1">/</span>
+        <span className="text-foreground">{product.name}</span>
       </nav>
 
-      <div className="grid gap-8 md:grid-cols-2 items-start">
-        {/* Imagen principal */}
-        <div className="rounded-xl border border-neutral-200 bg-white p-3">
-          {/* eslint-disable-next-line @next/next/no-img-element */}
-          <img
-            src={product.imageUrl || "/placeholder.png"}
-            alt={product.name}
-            className="h-72 w-full object-cover rounded-lg"
-          />
-        </div>
-
-        {/* Información del producto */}
+      {/* Layout principal */}
+      <div className="grid gap-8 lg:grid-cols-[minmax(0,1.1fr)_minmax(0,1fr)] items-start">
+        {/* LEFT COLUMN */}
         <div className="space-y-4">
-          {/* Nombre y categoría */}
-          <div className="space-y-2">
-            <h1 className="text-2xl md:text-3xl font-semibold">
-              {product.name}
-            </h1>
-
-            {product.category && (
-              <p className="text-sm text-neutral-500">
-                Categoría: {product.category.name}
-              </p>
-            )}
+          {/* Imagen */}
+          <div className="rounded-3xl border border-border bg-card p-4 shadow-sm">
+            <div className="h-[260px] md:h-[320px] w-full overflow-hidden rounded-2xl bg-muted flex items-center justify-center">
+              {product.imageUrl ? (
+                <img
+                  src={product.imageUrl}
+                  alt={product.name}
+                  className="max-h-full max-w-full object-contain"
+                />
+              ) : (
+                <div className="text-sm text-muted-foreground">
+                  Sin imagen disponible
+                </div>
+              )}
+            </div>
           </div>
 
-          {/* Precio + estado */}
-          <div className="space-y-1">
-            <p className="text-xl font-semibold text-neutral-900">
-              {formatPriceCLP(product.price)}
+          {/* Info despacho */}
+          <section className="rounded-3xl border border-emerald-200 bg-emerald-50 px-4 py-3 text-sm text-emerald-900 space-y-1">
+            <p className="font-semibold">
+              🚚 Despacho disponible.
+              <span className="font-normal">
+                {" "}
+                Sobre $50.000 en productos, el envío es gratis.
+              </span>
             </p>
-            {product.stock !== undefined && (
-              <p className="text-sm text-neutral-600">
-                {product.stock > 0
-                  ? `Stock disponible: ${product.stock} unidad${product.stock === 1 ? "" : "es"
-                  }`
-                  : "Sin stock disponible"}
-              </p>
-            )}
+            <p>📍 Retiro en tienda de lunes a domingo.</p>
+            <p className="text-xs">
+              Los tiempos de despacho y el costo final se confirman al coordinar
+              el pedido.
+            </p>
+          </section>
+        </div>
+
+        {/* RIGHT COLUMN */}
+        <div className="rounded-3xl border border-border bg-card p-5 shadow-sm flex flex-col gap-4">
+          {/* Nombre + categoría */}
+          <header className="space-y-2">
+            <h1 className="text-3xl font-semibold text-foreground">
+              {product.name}
+            </h1>
+            <p className="text-base text-muted-foreground">
+              Categoría: {categoryName}
+            </p>
+          </header>
+
+          {/* Precio + stock */}
+          <div className="space-y-1">
+            <p className="text-2xl font-semibold text-foreground">
+              {currencyCLP.format(Number(product.price) || 0)}
+            </p>
+            <p className="text-base text-muted-foreground">
+              Stock disponible: {stock} unidades
+            </p>
           </div>
 
           {/* Descripción */}
-          <div className="space-y-1">
-            <h2 className="text-sm font-semibold text-neutral-800">
+          <section className="space-y-1">
+            <h2 className="text-lg font-semibold text-foreground">
               Descripción
             </h2>
-            <p className="text-sm text-neutral-600">
-              {product.description || "Producto sin descripción detallada."}
+            <p className="text-base text-foreground leading-relaxed">
+              {product.description ||
+                "Producto de limpieza para uso doméstico y/o industrial."}
             </p>
-          </div>
+          </section>
 
-          {/* Info de despacho y retiro */}
-          <div className="rounded-lg border border-neutral-200 bg-neutral-50 px-3 py-2 text-xs text-neutral-700 space-y-1">
-            <p>
-              🛻 <span className="font-semibold">Despacho disponible.</span> Sobre
-              $50.000 en productos, el envío es{" "}
-              <span className="font-semibold">gratis</span>.
-            </p>
-            <p>
-              📍 Retiro en tienda disponible hasta el sábado. Días de trabajo de
-              lunes a domingo.
-            </p>
-            <p className="text-neutral-500">
-              Los tiempos y costo final de despacho se confirman al coordinar el
-              pedido.
-            </p>
-          </div>
-
-          {/* Fichas técnicas / hojas de seguridad (texto por ahora) */}
-          <div className="space-y-1 text-xs text-neutral-600">
-            <p className="font-semibold">Fichas técnicas y seguridad</p>
-            <p>
+          {/* Fichas técnicas */}
+          <section className="space-y-1">
+            <h3 className="text-base font-semibold text-foreground">
+              Fichas técnicas y seguridad
+            </h3>
+            <p className="text-sm text-foreground leading-relaxed">
               Si el producto lo requiere, se pueden adjuntar fichas técnicas u
-              hojas de seguridad (PDF) para descargas futuras.
+              hojas de seguridad (PDF).
             </p>
-          </div>
+          </section>
 
-          {/* Botón de agregar al carrito */}
-          <div className="pt-2">
-            <AddToCartButton product={product} />
+          {/* Botón agregar */}
+          <div className="pt-2 flex justify-end">
+            <button
+              onClick={() => addItem(product)}
+              className="inline-flex items-center justify-center rounded-full bg-emerald-600 px-8 py-3 text-base font-semibold text-white shadow-sm hover:bg-emerald-500 transition-colors"
+            >
+              Agregar al carrito
+            </button>
           </div>
         </div>
       </div>
