@@ -7,6 +7,7 @@ import RequireAdmin from "../../components/auth/requireAdmin";
 
 const navItems = [
   { href: "/admin", label: "Dashboard" },
+  { href: "/admin/categories", label: "Categorías" },
   { href: "/admin/products", label: "Productos" },
   { href: "/admin/orders", label: "Órdenes" },
   { href: "/admin/customers", label: "Clientes (local)" },

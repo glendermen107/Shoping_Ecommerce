@@ -19,8 +19,33 @@ function formatPriceCLP(value: number) {
 export default async function ProductPage({ params }: ProductPageProps) {
   const product = await fetchProductBySlug(params.slug);
 
-  // Si el backend no lo encuentra, fetchProductBySlug ya devuelve uno “Producto no encontrado”
-  const isNotFound = product.id === "0";
+  // Si no se encuentra el producto, mostramos mensaje
+  if (!product) {
+    return (
+      <section className="space-y-6">
+        <nav className="text-xs text-neutral-500">
+          <Link href="/catalogo" className="underline">
+            Catálogo
+          </Link>{" "}
+          / <span className="text-neutral-700">Producto no encontrado</span>
+        </nav>
+        <div className="text-center py-12">
+          <h1 className="text-2xl font-semibold text-neutral-700 mb-4">
+            Producto no encontrado
+          </h1>
+          <p className="text-neutral-500 mb-6">
+            El producto que buscas no existe o ha sido eliminado.
+          </p>
+          <Link
+            href="/catalogo"
+            className="inline-block px-6 py-2 bg-emerald-600 text-white rounded-full hover:bg-emerald-500 transition"
+          >
+            Volver al catálogo
+          </Link>
+        </div>
+      </section>
+    );
+  }
 
   return (
     <section className="space-y-6">
@@ -45,16 +70,15 @@ export default async function ProductPage({ params }: ProductPageProps) {
 
         {/* Información del producto */}
         <div className="space-y-4">
-          {/* Nombre y (opcional) categoría */}
+          {/* Nombre y categoría */}
           <div className="space-y-2">
             <h1 className="text-2xl md:text-3xl font-semibold">
               {product.name}
             </h1>
 
-            {/* Si en el futuro agregas categoryName o similar en el tipo Product */}
-            {"categoryName" in product && product.categoryName && (
+            {product.category && (
               <p className="text-sm text-neutral-500">
-                Categoría: {product.categoryName}
+                Categoría: {product.category.name}
               </p>
             )}
           </div>
@@ -64,13 +88,11 @@ export default async function ProductPage({ params }: ProductPageProps) {
             <p className="text-xl font-semibold text-neutral-900">
               {formatPriceCLP(product.price)}
             </p>
-            {/* Stock opcional si lo agregas en el tipo Product */}
-            {"stock" in product && typeof (product as any).stock === "number" && (
+            {product.stock !== undefined && (
               <p className="text-sm text-neutral-600">
-                {(product as any).stock > 0
-                  ? `Stock disponible: ${(product as any).stock} unidad${
-                      (product as any).stock === 1 ? "" : "es"
-                    }`
+                {product.stock > 0
+                  ? `Stock disponible: ${product.stock} unidad${product.stock === 1 ? "" : "es"
+                  }`
                   : "Sin stock disponible"}
               </p>
             )}
@@ -113,11 +135,9 @@ export default async function ProductPage({ params }: ProductPageProps) {
           </div>
 
           {/* Botón de agregar al carrito */}
-          {!isNotFound && (
-            <div className="pt-2">
-              <AddToCartButton product={product} />
-            </div>
-          )}
+          <div className="pt-2">
+            <AddToCartButton product={product} />
+          </div>
         </div>
       </div>
     </section>

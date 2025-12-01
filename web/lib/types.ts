@@ -1,26 +1,44 @@
+// Tipo de categoría del backend
+export type Category = {
+  id: number;
+  name: string;
+  slug: string;
+};
+
+// Tipo de producto que devuelve el backend
 export type Product = {
-  id: string;
+  id: number;  // Backend devuelve number
   slug: string;
   name: string;
   price: number;
   imageUrl?: string;
   description?: string;
-  // Opcionales, por si el backend los expone:
   stock?: number;
-  categoryName?: string;
 
-  categoryKey?: "cloro" | "hogar" | "personal";
+  // Relación con categoría (puede ser null)
+  category?: Category | null;
 
-
-  isFeatured?: boolean;        // para el carrusel
-  isOnSale?: boolean;          // para marcar que está en oferta
-  discountPercent?: number;    // % de descuento (ej: 10, 15, 20)
+  // Campos para ofertas y destacados
+  isFeatured?: boolean;
+  isOnSale?: boolean;
+  discountPercent?: number | null;
 };
 
+// Tipo de item del carrito (respuesta del backend)
 export type CartItem = {
-  productId: string;
+  productId: number;
   name: string;
   price: number;
   quantity: number;
+  total: number;  // Total del item (price * quantity)
   imageUrl?: string;
+};
+
+// Respuesta completa del carrito desde el backend
+export type CartResponse = {
+  id?: number | null;  // ID del carrito (null para invitados)
+  items: CartItem[];
+  subtotal: number;
+  taxes: number;
+  total: number;
 };

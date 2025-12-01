@@ -16,11 +16,7 @@ type catalogoPageProps = {
 
 export default async function catalogoPage({ searchParams }: catalogoPageProps) {
   const search = searchParams?.q?.toLowerCase() ?? "";
-  const category = searchParams?.cat as
-    | "cloro"
-    | "hogar"
-    | "personal"
-    | undefined;
+  const categorySlug = searchParams?.cat ?? "";
 
   const onlyFeatured = searchParams?.featured === "1";
   const onlyOnSale = searchParams?.onSale === "1";
@@ -44,8 +40,9 @@ export default async function catalogoPage({ searchParams }: catalogoPageProps) 
 
     const matchesSearch = search ? name.includes(search) : true;
 
-    const matchesCategory = category
-      ? product.categoryKey === category
+    // Filtrar por categoría usando el slug de la categoría
+    const matchesCategory = categorySlug
+      ? product.category?.slug === categorySlug
       : true;
 
     const matchesFeatured = onlyFeatured ? !!product.isFeatured : true;
@@ -95,13 +92,13 @@ export default async function catalogoPage({ searchParams }: catalogoPageProps) 
       <div className="flex gap-6">
         {/* ───────────── SIDEBAR IZQUIERDO ───────────── */}
         <aside
-            className="
+          className="
               hidden md:block
               w-[300px]
               rounded-3xl border border-emerald-200 bg-emerald-50
               p-5 space-y-6 text-sm shadow-md text-black
             "
-          >
+        >
           {/* Título / descripción corta */}
           <div className="space-y-1">
             <p className="text-xs font-semibold uppercase tracking-wide text-emerald-800">
@@ -156,7 +153,7 @@ export default async function catalogoPage({ searchParams }: catalogoPageProps) 
                       name="cat"
                       value={opt.key}
                       defaultChecked={
-                        category === opt.key || (!category && opt.key === "")
+                        categorySlug === opt.key || (!categorySlug && opt.key === "")
                       }
                       className="h-3 w-3 text-emerald-600"
                     />
@@ -239,9 +236,8 @@ export default async function catalogoPage({ searchParams }: catalogoPageProps) 
           <p className="text-xs text-slate-400">
             {totalCount === 0
               ? "No se encontraron productos."
-              : `Mostrando ${totalCount} producto${
-                  totalCount === 1 ? "" : "s"
-                }`}
+              : `Mostrando ${totalCount} producto${totalCount === 1 ? "" : "s"
+              }`}
           </p>
 
           {/* Carrusel arriba */}
