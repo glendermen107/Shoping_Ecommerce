@@ -56,8 +56,8 @@ export default function ProductCard({ p }: Props) {
           {p.name}
         </Link>
 
-        {p.categoryName && (
-          <p className="text-sm text-muted-foreground">{p.categoryName}</p>
+        {p.category?.name && (
+          <p className="text-sm text-muted-foreground">{p.category.name}</p>
         )}
 
         <p className="mt-1 text-xl font-semibold text-emerald-700">

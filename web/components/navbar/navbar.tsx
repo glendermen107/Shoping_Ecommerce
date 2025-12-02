@@ -5,7 +5,7 @@ import Link from "next/link";
 import Image from "next/image";
 import { usePathname, useRouter } from "next/navigation";
 import { useCart } from "../cart/cartContext";
-import { useAuth } from "../auth/authContext"; // ← versión MAIN correcta
+import { useAuth } from "../../contexts/AuthContext";
 
 const links = [
   { href: "/", label: "Inicio" },
@@ -203,19 +203,16 @@ export default function Navbar() {
           >
             <div className="space-y-1">
               <span
-                className={`block h-0.5 w-5 rounded-full bg-emerald-900 transition-transform ${
-                  isOpen ? "translate-y-1.5 rotate-45" : ""
-                }`}
+                className={`block h-0.5 w-5 rounded-full bg-emerald-900 transition-transform ${isOpen ? "translate-y-1.5 rotate-45" : ""
+                  }`}
               />
               <span
-                className={`block h-0.5 w-5 rounded-full bg-emerald-900 transition-opacity ${
-                  isOpen ? "opacity-0" : "opacity-100"
-                }`}
+                className={`block h-0.5 w-5 rounded-full bg-emerald-900 transition-opacity ${isOpen ? "opacity-0" : "opacity-100"
+                  }`}
               />
               <span
-                className={`block h-0.5 w-5 rounded-full bg-emerald-900 transition-transform ${
-                  isOpen ? "-translate-y-1.5 -rotate-45" : ""
-                }`}
+                className={`block h-0.5 w-5 rounded-full bg-emerald-900 transition-transform ${isOpen ? "-translate-y-1.5 -rotate-45" : ""
+                  }`}
               />
             </div>
           </button>
