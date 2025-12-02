@@ -3,7 +3,6 @@ import {
   IsNumber,
   IsPositive,
   IsOptional,
-  IsUrl,
   Min,
   IsInt,
   IsBoolean,
@@ -29,7 +28,7 @@ export class CreateProductDto {
   readonly stock: number;
 
   @IsOptional()
-  @IsUrl()
+  @IsString()
   readonly imageUrl?: string;
 
   @IsInt()

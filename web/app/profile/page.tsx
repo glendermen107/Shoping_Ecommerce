@@ -1,6 +1,7 @@
 // web/app/profile/page.tsx
 "use client";
 
+import { useState, useEffect } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 
@@ -141,7 +142,7 @@ export default function ProfilePage() {
                 Bienvenido(a)
               </p>
               <p className="text-2xl font-semibold text-foreground">
-                {user.name ?? "Usuario"}
+                {user.email.split('@')[0] ?? "Usuario"}
               </p>
             </div>
 
@@ -161,11 +162,10 @@ export default function ProfilePage() {
                   {user.roles.map((role) => (
                     <span
                       key={role}
-                      className={`inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-medium ${
-                        role === "admin"
-                          ? "bg-emerald-900/50 text-emerald-300 border border-emerald-700"
-                          : "bg-neutral-800 text-neutral-300 border border-neutral-700"
-                      }`}
+                      className={`inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-medium ${role === "admin"
+                        ? "bg-emerald-900/50 text-emerald-300 border border-emerald-700"
+                        : "bg-neutral-800 text-neutral-300 border border-neutral-700"
+                        }`}
                     >
                       {role}
                     </span>
@@ -270,7 +270,7 @@ export default function ProfilePage() {
             </div>
           ) : (
             <ul className="space-y-3 text-sm">
-              {recentOrders.map((order) => (
+              {recentOrders.map((order: LocalOrderSummary) => (
                 <li
                   key={order.id}
                   className="flex items-center justify-between rounded-2xl border border-border px-4 py-2.5"

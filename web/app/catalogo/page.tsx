@@ -3,8 +3,10 @@ import ProductGrid from "../../components/products/productGrid";
 import OffersCarousel from "../../components/carousel/offersCarousel";
 import PriceRangeFilter from "../../components/carousel/priceRangeFilter";
 
-import { productsApi } from "../../lib/productsApi";
-import { categoriesApi } from "../../lib/categoriesApi";
+import { getProducts } from "../../lib/productsApi";
+import { getCategories } from "../../lib/categoriesApi";
+import type { Product } from "../../lib/types";
+import type { Category } from "../../lib/categoriesApi";
 
 type CatalogoPageProps = {
   searchParams?: {
@@ -29,18 +31,18 @@ export default async function CatalogoPage({ searchParams }: CatalogoPageProps) 
 
   // 🔥 Obtener productos y categorías desde tu API nueva
   const [products, categories] = await Promise.all([
-    productsApi.list(),
-    categoriesApi.list()
+    getProducts(),
+    getCategories()
   ]);
 
   // Max price global (para slider)
-  const prices = products.map((p) => Number(p.price) || 0);
+  const prices = products.map((p: Product) => Number(p.price) || 0);
   const globalMaxPrice = prices.length > 0 ? Math.max(...prices) : 10000;
 
   // ------------------------
   // FILTRADO DE PRODUCTOS
   // ------------------------
-  const filteredProducts = products.filter((product) => {
+  const filteredProducts = products.filter((product: Product) => {
     const name = product.name.toLowerCase();
     const price = Number(product.price) || 0;
 
@@ -72,7 +74,7 @@ export default async function CatalogoPage({ searchParams }: CatalogoPageProps) 
   const totalCount = filteredProducts.length;
 
   // Destacados → carrusel
-  let featuredProducts = filteredProducts.filter((p) => p.isFeatured);
+  let featuredProducts = filteredProducts.filter((p: Product) => p.isFeatured);
   if (featuredProducts.length === 0) {
     featuredProducts = filteredProducts.slice(0, 4);
   }
@@ -145,7 +147,7 @@ export default async function CatalogoPage({ searchParams }: CatalogoPageProps) 
                   Todos
                 </label>
 
-                {categories.map((cat) => (
+                {categories.map((cat: Category) => (
                   <label key={cat.id} className="flex items-center gap-2 cursor-pointer">
                     <input
                       type="radio"

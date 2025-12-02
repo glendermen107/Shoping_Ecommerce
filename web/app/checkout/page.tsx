@@ -5,7 +5,7 @@ import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { useCart } from "../../components/cart/cartContext";
-import { useAuth } from "../../components/auth/authContext";
+import { useAuth } from "../../contexts/AuthContext";
 
 const currencyCLP = new Intl.NumberFormat("es-CL", {
   style: "currency",
@@ -17,10 +17,10 @@ type ShippingMethod = "pickup" | "delivery";
 
 type LocalOrder = {
   id: string;
-  userId: string;
+  userId: number;
   email: string;
   items: {
-    productId: string;
+    productId: number;
     name: string;
     quantity: number;
     price: number;
@@ -74,64 +74,64 @@ export default function CheckoutPage() {
   }
 
   const handleSubmit = (e: React.FormEvent) => {
-  e.preventDefault();
-  setError("");
+    e.preventDefault();
+    setError("");
 
-  if (!isAuthenticated || !user) {
-    setError("Debes iniciar sesión para confirmar tu pedido.");
-    return;
-  }
-
-  if (shippingMethod === "delivery") {
-    if (!address.trim() || !city.trim() || !region.trim()) {
-      setError("Para envío a domicilio debes completar todos los datos de dirección.");
+    if (!isAuthenticated || !user) {
+      setError("Debes iniciar sesión para confirmar tu pedido.");
       return;
     }
-  }
 
-  setIsSubmitting(true);
-
-  try {
-    const now = new Date();
-    const shippingAddress =
-      shippingMethod === "pickup"
-        ? "Retiro en tienda - dirección se coordina con el vendedor."
-        : `${address.trim()}, ${city.trim()}, ${region.trim()}`;
-
-    const order: LocalOrder = {
-      id: crypto.randomUUID(),
-      userId: user.id,
-      email: user.email,
-      items: items.map((it) => ({
-        productId: it.productId,
-        name: it.name,
-        quantity: it.quantity,
-        price: it.price,
-      })),
-      totalAmount,
-      status: "Pendiente de pago",
-      shippingMethod:
-        shippingMethod === "pickup" ? "Retiro en tienda" : "Envío a domicilio",
-      shippingAddress,
-      notes: notes.trim() || undefined,
-      createdAt: now.toISOString(),
-    };
-
-    if (typeof window !== "undefined") {
-      const raw = window.localStorage.getItem("orders");
-      const existing: LocalOrder[] = raw ? JSON.parse(raw) : [];
-      existing.push(order);
-      window.localStorage.setItem("orders", JSON.stringify(existing));
+    if (shippingMethod === "delivery") {
+      if (!address.trim() || !city.trim() || !region.trim()) {
+        setError("Para envío a domicilio debes completar todos los datos de dirección.");
+        return;
+      }
     }
 
-    // Vaciar carrito
-    clear();
+    setIsSubmitting(true);
 
-    // 🌟 Mensaje de confirmación + redirección a la cuenta
-    alert(
-      "Tu orden de compra se generó correctamente. Puedes revisarla en tu cuenta en la sección de pedidos."
-    );
-    // Como ya está logueado, lo mandamos a su cuenta
+    try {
+      const now = new Date();
+      const shippingAddress =
+        shippingMethod === "pickup"
+          ? "Retiro en tienda - dirección se coordina con el vendedor."
+          : `${address.trim()}, ${city.trim()}, ${region.trim()}`;
+
+      const order: LocalOrder = {
+        id: crypto.randomUUID(),
+        userId: user.id,
+        email: user.email,
+        items: items.map((it) => ({
+          productId: it.productId,
+          name: it.name,
+          quantity: it.quantity,
+          price: it.price,
+        })),
+        totalAmount,
+        status: "Pendiente de pago",
+        shippingMethod:
+          shippingMethod === "pickup" ? "Retiro en tienda" : "Envío a domicilio",
+        shippingAddress,
+        notes: notes.trim() || undefined,
+        createdAt: now.toISOString(),
+      };
+
+      if (typeof window !== "undefined") {
+        const raw = window.localStorage.getItem("orders");
+        const existing: LocalOrder[] = raw ? JSON.parse(raw) : [];
+        existing.push(order);
+        window.localStorage.setItem("orders", JSON.stringify(existing));
+      }
+
+      // Vaciar carrito
+      clear();
+
+      // 🌟 Mensaje de confirmación + redirección a la cuenta
+      alert(
+        "Tu orden de compra se generó correctamente. Puedes revisarla en tu cuenta en la sección de pedidos."
+      );
+      // Como ya está logueado, lo mandamos a su cuenta
       router.push("/profile");
     } catch (err) {
       console.error("Error al generar la orden:", err);

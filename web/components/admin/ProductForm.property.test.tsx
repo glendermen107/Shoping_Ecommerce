@@ -34,8 +34,8 @@ vi.mock('@/lib/mediaApi', () => ({
 
 describe('ProductForm - Property-Based Tests', () => {
     const mockCategories: Category[] = [
-        { id: 1, name: 'Category 1', slug: 'category-1', description: 'Test category 1' },
-        { id: 2, name: 'Category 2', slug: 'category-2', description: 'Test category 2' },
+        { id: 1, name: 'Category 1', slug: 'category-1' },
+        { id: 2, name: 'Category 2', slug: 'category-2' },
     ];
 
     beforeEach(() => {
@@ -520,13 +520,11 @@ describe('ProductForm - Property-Based Tests', () => {
                             description: 'Test product',
                             price,
                             stock,
-                            imageUrl: uniqueUrls,
+                            imageUrl: uniqueUrls[0], // Use first image as string
                             category: mockCategories[0],
                             isFeatured: false,
                             isOnSale: false,
                             discountPercent: null,
-                            createdAt: new Date().toISOString(),
-                            updatedAt: new Date().toISOString(),
                         };
 
                         vi.mocked(mediaApi.listImages).mockResolvedValue(uniqueUrls);
@@ -610,8 +608,6 @@ describe('ProductForm - Property-Based Tests', () => {
                             isFeatured: false,
                             isOnSale: false,
                             discountPercent: null,
-                            createdAt: new Date().toISOString(),
-                            updatedAt: new Date().toISOString(),
                         };
 
                         vi.mocked(mediaApi.listImages).mockResolvedValue([imageUrl]);

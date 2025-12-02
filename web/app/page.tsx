@@ -88,7 +88,7 @@ export default async function HomePage() {
                     </p>
                     <p className="mt-1 text-sm text-slate-900">
                       {/* ★ gris medio -> casi negro */}
-                      {p.categoryName ?? p.categoryKey ?? "Producto de limpieza"}
+                      {p.category?.name ?? "Producto de limpieza"}
                     </p>
                     <p className="mt-1 text-sm font-semibold text-emerald-800">
                       ${Number(p.price).toLocaleString("es-CL")}

@@ -124,18 +124,21 @@ export default function ProductForm({
             setIsSubmitting(true);
 
             // Convert images array to single string for backend compatibility
-            const images = Array.isArray(formData.imageUrl) ? formData.imageUrl : [];
-            const dataToSend: any = {
-                ...formData,
-            };
+            const images = Array.isArray(formData.imageUrl)
+                ? formData.imageUrl.filter((url: string) => url && url.trim() !== '')
+                : [];
 
-            // Only include imageUrl if we have at least one image
+            // Build data object without imageUrl first
+            const { imageUrl: _, ...restData } = formData;
+            const dataToSend: any = { ...restData };
+
+            // Only include imageUrl if we have at least one valid image URL
             if (images.length > 0) {
                 dataToSend.imageUrl = images[0];
-            } else {
-                // Remove imageUrl field completely if no images
-                delete dataToSend.imageUrl;
             }
+            // If no images, imageUrl field is completely omitted
+
+            console.log('Sending data to backend:', JSON.stringify(dataToSend, null, 2)); // Debug log
 
             await onSave(dataToSend);
             // El componente padre cerrará el modal y mostrará notificación
