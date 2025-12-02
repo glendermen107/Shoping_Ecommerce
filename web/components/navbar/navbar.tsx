@@ -42,7 +42,7 @@ export default function Navbar() {
         {/* Logo + marca */}
         <Link href="/" className="flex items-center gap-3" onClick={closeMenu}>
           <Image
-            src="/logo.jpeg"
+            src="/favicon.ico"
             alt="Cleaning Line GP"
             width={42}
             height={42}
