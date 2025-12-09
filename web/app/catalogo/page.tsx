@@ -1,12 +1,13 @@
 // web/app/catalogo/page.tsx
 import ProductGrid from "../../components/products/productGrid";
 import OffersCarousel from "../../components/carousel/offersCarousel";
-import PriceRangeFilter from "../../components/carousel/priceRangeFilter";
 
 import { getProducts } from "../../lib/productsApi";
 import { getCategories } from "../../lib/categoriesApi";
 import type { Product } from "../../lib/types";
 import type { Category } from "../../lib/categoriesApi";
+
+import CatalogFilters from "../catalogo/catalogoFilters";
 
 type CatalogoPageProps = {
   searchParams?: {
@@ -20,19 +21,23 @@ type CatalogoPageProps = {
 };
 
 export default async function CatalogoPage({ searchParams }: CatalogoPageProps) {
-  // Parámetros de búsqueda
+  // Parámetros de búsqueda DESDE LA URL
   const search = searchParams?.q?.toLowerCase() ?? "";
   const categorySlug = searchParams?.cat ?? "";
   const onlyFeatured = searchParams?.featured === "1";
   const onlyOnSale = searchParams?.onSale === "1";
 
-  const minPrice = searchParams?.minPrice ? Number(searchParams.minPrice) : undefined;
-  const maxPrice = searchParams?.maxPrice ? Number(searchParams.maxPrice) : undefined;
+  const minPrice = searchParams?.minPrice
+    ? Number(searchParams.minPrice)
+    : undefined;
+  const maxPrice = searchParams?.maxPrice
+    ? Number(searchParams.maxPrice)
+    : undefined;
 
   // 🔥 Obtener productos y categorías desde tu API nueva
   const [products, categories] = await Promise.all([
     getProducts(),
-    getCategories()
+    getCategories(),
   ]);
 
   // Max price global (para slider)
@@ -40,14 +45,16 @@ export default async function CatalogoPage({ searchParams }: CatalogoPageProps) 
   const globalMaxPrice = prices.length > 0 ? Math.max(...prices) : 10000;
 
   // ------------------------
-  // FILTRADO DE PRODUCTOS
+  // FILTRADO DE PRODUCTOS (para el GRID)
   // ------------------------
   const filteredProducts = products.filter((product: Product) => {
     const name = product.name.toLowerCase();
     const price = Number(product.price) || 0;
 
     const matchesSearch = search ? name.includes(search) : true;
-    const matchesCategory = categorySlug ? product.category?.slug === categorySlug : true;
+    const matchesCategory = categorySlug
+      ? product.category?.slug === categorySlug
+      : true;
     const matchesFeatured = onlyFeatured ? !!product.isFeatured : true;
     const matchesOnSale = onlyOnSale ? !!product.isOnSale : true;
 
@@ -73,10 +80,14 @@ export default async function CatalogoPage({ searchParams }: CatalogoPageProps) 
 
   const totalCount = filteredProducts.length;
 
-  // Destacados → carrusel
-  let featuredProducts = filteredProducts.filter((p: Product) => p.isFeatured);
+  // ------------------------
+  // DESTACADOS PARA EL CARRUSEL
+  // 👉 AHORA SIEMPRE DESDE TODOS LOS PRODUCTOS,
+  //    NO DESDE LOS FILTRADOS
+  // ------------------------
+  let featuredProducts = products.filter((p: Product) => p.isFeatured);
   if (featuredProducts.length === 0) {
-    featuredProducts = filteredProducts.slice(0, 4);
+    featuredProducts = products.slice(0, 4);
   }
 
   return (
@@ -111,124 +122,30 @@ export default async function CatalogoPage({ searchParams }: CatalogoPageProps) 
             </p>
           </div>
 
-          <form action="/catalogo" className="space-y-5">
-            {/* BUSCAR */}
-            <div className="space-y-2">
-              <p className="text-xs font-semibold text-emerald-800">Buscar</p>
-              <input
-                type="text"
-                name="q"
-                defaultValue={searchParams?.q ?? ""}
-                placeholder="Ej: cloro..."
-                className="
-                  w-full rounded-full border border-emerald-200 bg-white 
-                  px-3 py-2 text-sm 
-                  placeholder:text-emerald-600
-                  outline-none focus:border-emerald-500
-                "
-              />
-            </div>
-
-            <hr className="border-emerald-200" />
-
-            {/* CATEGORÍAS DINÁMICAS */}
-            <div className="space-y-2">
-              <p className="text-xs font-semibold text-emerald-800">Categoría</p>
-
-              <div className="flex flex-col gap-2 text-sm">
-                <label className="flex items-center gap-2 cursor-pointer">
-                  <input
-                    type="radio"
-                    name="cat"
-                    value=""
-                    defaultChecked={!categorySlug}
-                    className="h-4 w-4 text-emerald-600"
-                  />
-                  Todos
-                </label>
-
-                {categories.map((cat: Category) => (
-                  <label key={cat.id} className="flex items-center gap-2 cursor-pointer">
-                    <input
-                      type="radio"
-                      name="cat"
-                      value={cat.slug}
-                      defaultChecked={categorySlug === cat.slug}
-                      className="h-4 w-4 text-emerald-600"
-                    />
-                    {cat.name}
-                  </label>
-                ))}
-              </div>
-            </div>
-
-            <hr className="border-emerald-200" />
-
-            {/* TIPO */}
-            <div className="space-y-2">
-              <p className="text-xs font-semibold text-emerald-800">Tipo de producto</p>
-
-              <label className="flex items-center gap-2 cursor-pointer">
-                <input
-                  type="checkbox"
-                  name="featured"
-                  value="1"
-                  defaultChecked={onlyFeatured}
-                  className="h-4 w-4 text-emerald-600"
-                />
-                Solo destacados
-              </label>
-
-              <label className="flex items-center gap-2 cursor-pointer">
-                <input
-                  type="checkbox"
-                  name="onSale"
-                  value="1"
-                  defaultChecked={onlyOnSale}
-                  className="h-4 w-4 text-emerald-600"
-                />
-                Solo en oferta
-              </label>
-            </div>
-
-            <hr className="border-emerald-200" />
-
-            {/* PRECIO */}
-            <PriceRangeFilter
-              maxLimit={globalMaxPrice}
-              initialMaxPrice={maxPrice}
-            />
-
-            <div className="flex items-center justify-between pt-2">
-              <button
-                type="submit"
-                className="
-                  rounded-full bg-emerald-600
-                  px-4 py-2 text-xs font-semibold text-white
-                  hover:bg-emerald-500 transition
-                "
-              >
-                Aplicar filtros
-              </button>
-
-              <a
-                href="/catalogo"
-                className="text-xs text-emerald-700 hover:text-emerald-900"
-              >
-                Limpiar
-              </a>
-            </div>
-          </form>
+          {/* 🔹 COMPONENTE CLIENTE QUE AUTO-APLICA LOS FILTROS */}
+          <CatalogFilters
+            categories={categories as Category[]}
+            initialSearch={searchParams?.q ?? ""}
+            categorySlug={categorySlug}
+            onlyFeatured={onlyFeatured}
+            onlyOnSale={onlyOnSale}
+            maxPrice={maxPrice}
+            globalMaxPrice={globalMaxPrice}
+          />
         </aside>
 
         {/* CONTENIDO PRINCIPAL */}
         <div className="flex-1 space-y-6">
+          {/* “Footer” informativo arriba del listado, se actualiza solo */}
           <p className="text-sm text-muted-foreground">
             {totalCount === 0
               ? "No se encontraron productos."
-              : `Mostrando ${totalCount} producto${totalCount === 1 ? "" : "s"}`}
+              : `Mostrando ${totalCount} producto${
+                  totalCount === 1 ? "" : "s"
+                } con los filtros actuales.`}
           </p>
 
+          {/* Carrusel de destacados → NO depende de los filtros */}
           {featuredProducts.length > 0 && (
             <OffersCarousel
               products={featuredProducts}
