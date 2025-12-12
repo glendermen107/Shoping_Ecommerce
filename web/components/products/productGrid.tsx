@@ -1,8 +1,13 @@
 // web/components/products/productGrid.tsx
+import React from "react";
 import type { Product } from "../../lib/types";
 import ProductCard from "./productCard";
 
-export default function ProductGrid({ products }: { products: Product[] }) {
+interface ProductGridProps {
+  products: Product[];
+}
+
+function ProductGrid({ products }: ProductGridProps) {
   if (!products?.length)
     return (
       <p className="text-base text-muted-foreground">
@@ -26,3 +31,6 @@ export default function ProductGrid({ products }: { products: Product[] }) {
     </div>
   );
 }
+
+// Memoize ProductGrid to prevent unnecessary re-renders when products array hasn't changed
+export default React.memo(ProductGrid);

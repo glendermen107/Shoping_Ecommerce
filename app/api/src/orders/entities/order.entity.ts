@@ -21,7 +21,7 @@ export class Order {
   @PrimaryGeneratedColumn()
   id: number;
 
-  @ManyToOne(() => User, (user) => user.orders)
+  @ManyToOne(() => User, (user) => user.orders, { nullable: true })
   user: User;
 
   @OneToMany(() => OrderItem, (item) => item.order, { cascade: true })
@@ -36,6 +36,34 @@ export class Order {
 
   @Column({ type: 'decimal', precision: 10, scale: 2 })
   total: number;
+
+  // Campos para checkout invitado
+  @Column({ nullable: true })
+  customerName: string;
+
+  @Column({ nullable: true })
+  customerEmail: string;
+
+  @Column({ nullable: true })
+  customerPhone: string;
+
+  @Column({ nullable: true })
+  customerRut: string;
+
+  @Column({ nullable: true })
+  customerAddress: string;
+
+  @Column({ nullable: true })
+  customerRegion: string;
+
+  @Column({ nullable: true })
+  customerCommune: string;
+
+  @Column({ nullable: true })
+  deliveryType: string;
+
+  @Column({ type: 'text', nullable: true })
+  notes: string;
 
   @CreateDateColumn({ type: 'timestamptz', default: () => 'CURRENT_TIMESTAMP' })
   createdAt: Date;

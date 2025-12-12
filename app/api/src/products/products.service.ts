@@ -3,6 +3,7 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { CreateProductDto } from './dto/create-product.dto';
 import { UpdateProductDto } from './dto/update-product.dto';
+import { PaginatedResponse, ProductFilters } from './dto/pagination.dto';
 import { Product } from './entities/product.entity';
 import { Category } from './entities/category.entity';
 
@@ -13,7 +14,7 @@ export class ProductsService {
     private readonly productRepository: Repository<Product>,
     @InjectRepository(Category)
     private readonly categoryRepository: Repository<Category>,
-  ) {}
+  ) { }
 
   async create(createProductDto: CreateProductDto): Promise<Product> {
     const { categoryId, ...productData } = createProductDto;
@@ -36,6 +37,52 @@ export class ProductsService {
     return this.productRepository.find({
       relations: ['category'],
     });
+  }
+
+  async findAllPaginated(
+    page: number = 1,
+    limit: number = 20,
+    filters?: ProductFilters,
+  ): Promise<PaginatedResponse<Product>> {
+    const queryBuilder = this.productRepository
+      .createQueryBuilder('product')
+      .leftJoinAndSelect('product.category', 'category')
+      .orderBy('product.id', 'DESC');
+
+    // Apply search filter
+    if (filters?.search) {
+      queryBuilder.andWhere('product.name ILIKE :search', {
+        search: `%${filters.search}%`,
+      });
+    }
+
+    // Apply category filter
+    if (filters?.categoryId) {
+      queryBuilder.andWhere('product.category.id = :categoryId', {
+        categoryId: filters.categoryId,
+      });
+    }
+
+    // Calculate offset
+    const offset = (page - 1) * limit;
+
+    // Get total count
+    const total = await queryBuilder.getCount();
+
+    // Get paginated results
+    const items = await queryBuilder.skip(offset).take(limit).getMany();
+
+    // Calculate pagination metadata
+    const lastPage = Math.ceil(total / limit);
+    const hasMore = page < lastPage;
+
+    return {
+      items,
+      total,
+      page,
+      lastPage,
+      hasMore,
+    };
   }
 
   async findOne(id: number): Promise<Product> {

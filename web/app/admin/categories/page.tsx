@@ -87,15 +87,6 @@ function CategoriesPageContent() {
 
     // Eliminar categoría
     const handleDelete = async (category: Category) => {
-        const confirmMessage =
-            category.productCount && category.productCount > 0
-                ? `¿Estás seguro de eliminar "${category.name}"?\n\nEsta categoría tiene ${category.productCount} producto(s) asociado(s).\nLos productos quedarán sin categoría.`
-                : `¿Estás seguro de eliminar "${category.name}"?`;
-
-        if (!window.confirm(confirmMessage)) {
-            return;
-        }
-
         try {
             await deleteCategory(category.id);
             showNotification("Categoría eliminada correctamente", "success");

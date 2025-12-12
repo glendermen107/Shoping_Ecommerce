@@ -6,52 +6,39 @@ import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { useCart } from "../../components/cart/cartContext";
 import { useAuth } from "../../contexts/AuthContext";
+import { toNumber, formatCLP } from "../../lib/price";
+import { createWebpayTransaction } from "../../lib/paymentsApi";
+import { createCheckoutOrder } from "../../lib/ordersApi";
 
-const currencyCLP = new Intl.NumberFormat("es-CL", {
-  style: "currency",
-  currency: "CLP",
-  maximumFractionDigits: 0,
-});
-
-type ShippingMethod = "pickup" | "delivery";
-
-type LocalOrder = {
-  id: string;
-  userId: number;
-  email: string;
-  items: {
-    productId: number;
-    name: string;
-    quantity: number;
-    price: number;
-  }[];
-  totalAmount: number;
-  status: string;
-  shippingMethod: string;
-  shippingAddress: string;
-  notes?: string;
-  createdAt: string;
-};
+type DeliveryType = "pickup" | "delivery";
 
 export default function CheckoutPage() {
   const router = useRouter();
   const { items, totalAmount, clear } = useCart();
   const { user, isAuthenticated } = useAuth();
 
-  const [shippingMethod, setShippingMethod] =
-    useState<ShippingMethod>("pickup");
-  const [address, setAddress] = useState("");
-  const [city, setCity] = useState("");
-  const [region, setRegion] = useState("");
+  // Datos del cliente
+  const [customerName, setCustomerName] = useState("");
+  const [customerEmail, setCustomerEmail] = useState("");
+  const [customerPhone, setCustomerPhone] = useState("");
+  const [customerRut, setCustomerRut] = useState("");
+
+  // Datos de entrega
+  const [deliveryType, setDeliveryType] = useState<DeliveryType>("pickup");
+  const [customerAddress, setCustomerAddress] = useState("");
+  const [customerRegion, setCustomerRegion] = useState("");
+  const [customerCommune, setCustomerCommune] = useState("");
   const [notes, setNotes] = useState("");
 
   const [error, setError] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
 
-  // Si no hay usuario → sugerimos ir a login
+  // Prellenar datos si el usuario está autenticado
   useEffect(() => {
-    // no redirijo de inmediato para que vea el mensaje
-  }, [isAuthenticated]);
+    if (user) {
+      setCustomerEmail(user.email || "");
+    }
+  }, [user]);
 
   // Si no hay productos en el carrito
   if (!items || items.length === 0) {
@@ -73,17 +60,18 @@ export default function CheckoutPage() {
     );
   }
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError("");
 
-    if (!isAuthenticated || !user) {
-      setError("Debes iniciar sesión para confirmar tu pedido.");
+    // Validaciones
+    if (!customerName.trim() || !customerEmail.trim() || !customerPhone.trim()) {
+      setError("Por favor completa todos los campos requeridos del comprador.");
       return;
     }
 
-    if (shippingMethod === "delivery") {
-      if (!address.trim() || !city.trim() || !region.trim()) {
+    if (deliveryType === "delivery") {
+      if (!customerAddress.trim() || !customerRegion.trim() || !customerCommune.trim()) {
         setError("Para envío a domicilio debes completar todos los datos de dirección.");
         return;
       }
@@ -92,51 +80,32 @@ export default function CheckoutPage() {
     setIsSubmitting(true);
 
     try {
-      const now = new Date();
-      const shippingAddress =
-        shippingMethod === "pickup"
-          ? "Retiro en tienda - dirección se coordina con el vendedor."
-          : `${address.trim()}, ${city.trim()}, ${region.trim()}`;
-
-      const order: LocalOrder = {
-        id: crypto.randomUUID(),
-        userId: user.id,
-        email: user.email,
-        items: items.map((it) => ({
-          productId: it.productId,
-          name: it.name,
-          quantity: it.quantity,
-          price: it.price,
-        })),
-        totalAmount,
-        status: "Pendiente de pago",
-        shippingMethod:
-          shippingMethod === "pickup" ? "Retiro en tienda" : "Envío a domicilio",
-        shippingAddress,
+      // Crear la orden en el backend
+      const orderData = {
+        deliveryType,
         notes: notes.trim() || undefined,
-        createdAt: now.toISOString(),
+        customerName: customerName.trim(),
+        customerEmail: customerEmail.trim(),
+        customerPhone: customerPhone.trim(),
+        customerRut: customerRut.trim() || undefined,
+        customerAddress: deliveryType === "delivery" ? customerAddress.trim() : undefined,
+        customerRegion: deliveryType === "delivery" ? customerRegion.trim() : undefined,
+        customerCommune: deliveryType === "delivery" ? customerCommune.trim() : undefined,
       };
 
-      if (typeof window !== "undefined") {
-        const raw = window.localStorage.getItem("orders");
-        const existing: LocalOrder[] = raw ? JSON.parse(raw) : [];
-        existing.push(order);
-        window.localStorage.setItem("orders", JSON.stringify(existing));
-      }
+      const order = await createCheckoutOrder(orderData, items);
 
-      // Vaciar carrito
-      clear();
+      // Crear la transacción de Webpay
+      const webpayData = await createWebpayTransaction(order.id);
 
-      // 🌟 Mensaje de confirmación + redirección a la cuenta
-      alert(
-        "Tu orden de compra se generó correctamente. Puedes revisarla en tu cuenta en la sección de pedidos."
-      );
-      // Como ya está logueado, lo mandamos a su cuenta
-      router.push("/profile");
-    } catch (err) {
-      console.error("Error al generar la orden:", err);
-      setError("Ocurrió un error al generar tu orden. Intenta nuevamente.");
-    } finally {
+      // Vaciar carrito antes de redirigir
+      await clear();
+
+      // Redirigir a Webpay
+      window.location.href = `${webpayData.url}?token_ws=${webpayData.token}`;
+    } catch (err: any) {
+      console.error("Error al procesar el pago:", err);
+      setError(err.message || "Ocurrió un error al procesar tu pedido. Intenta nuevamente.");
       setIsSubmitting(false);
     }
   };
@@ -148,20 +117,21 @@ export default function CheckoutPage() {
           Confirmar pedido
         </h1>
         <p className="text-base text-muted-foreground">
-          Revisa tus productos, elige el tipo de entrega y genera tu orden de compra.
+          Completa tus datos y elige el tipo de entrega para continuar al pago.
         </p>
       </header>
 
-      {/* Aviso si no está logueado */}
+      {/* Aviso para invitados */}
       {!isAuthenticated && (
-        <div className="rounded-2xl border border-amber-300 bg-amber-50 px-4 py-3 text-sm text-amber-800">
-          Debes iniciar sesión para completar el pedido.{" "}
+        <div className="rounded-2xl border border-blue-300 bg-blue-50 px-4 py-3 text-sm text-blue-800">
+          Puedes comprar como invitado o{" "}
           <Link
             href="/auth/login"
             className="font-semibold text-emerald-700 hover:text-emerald-800"
           >
-            Iniciar sesión
-          </Link>
+            iniciar sesión
+          </Link>{" "}
+          para guardar tu historial de pedidos.
         </div>
       )}
 
@@ -172,59 +142,120 @@ export default function CheckoutPage() {
       )}
 
       <div className="grid gap-6 md:grid-cols-[minmax(0,1.4fr)_minmax(0,1fr)] items-start">
-        {/* Columna izquierda: formulario de entrega */}
+        {/* Columna izquierda: formulario */}
         <form
           onSubmit={handleSubmit}
           className="space-y-5 rounded-3xl border border-border bg-card p-6 shadow-sm"
         >
-          <div className="space-y-2">
+          {/* Datos del comprador */}
+          <div className="space-y-3">
+            <h2 className="text-lg font-semibold text-foreground">
+              Datos del comprador
+            </h2>
+
+            <div className="space-y-1">
+              <label className="block text-xs font-medium text-foreground">
+                Nombre completo *
+              </label>
+              <input
+                type="text"
+                value={customerName}
+                onChange={(e) => setCustomerName(e.target.value)}
+                required
+                className="w-full rounded-2xl border border-border bg-white px-3 py-2.5 text-base text-foreground placeholder:text-muted-foreground outline-none focus:border-emerald-500 focus:ring-2 focus:ring-emerald-100"
+                placeholder="Ej: Juan Pérez"
+              />
+            </div>
+
+            <div className="grid gap-3 md:grid-cols-2">
+              <div className="space-y-1">
+                <label className="block text-xs font-medium text-foreground">
+                  Email *
+                </label>
+                <input
+                  type="email"
+                  value={customerEmail}
+                  onChange={(e) => setCustomerEmail(e.target.value)}
+                  required
+                  className="w-full rounded-2xl border border-border bg-white px-3 py-2.5 text-base text-foreground placeholder:text-muted-foreground outline-none focus:border-emerald-500 focus:ring-2 focus:ring-emerald-100"
+                  placeholder="correo@ejemplo.com"
+                />
+              </div>
+
+              <div className="space-y-1">
+                <label className="block text-xs font-medium text-foreground">
+                  Teléfono *
+                </label>
+                <input
+                  type="tel"
+                  value={customerPhone}
+                  onChange={(e) => setCustomerPhone(e.target.value)}
+                  required
+                  className="w-full rounded-2xl border border-border bg-white px-3 py-2.5 text-base text-foreground placeholder:text-muted-foreground outline-none focus:border-emerald-500 focus:ring-2 focus:ring-emerald-100"
+                  placeholder="+56 9 1234 5678"
+                />
+              </div>
+            </div>
+
+            <div className="space-y-1">
+              <label className="block text-xs font-medium text-foreground">
+                RUT (opcional)
+              </label>
+              <input
+                type="text"
+                value={customerRut}
+                onChange={(e) => setCustomerRut(e.target.value)}
+                className="w-full rounded-2xl border border-border bg-white px-3 py-2.5 text-base text-foreground placeholder:text-muted-foreground outline-none focus:border-emerald-500 focus:ring-2 focus:ring-emerald-100"
+                placeholder="12.345.678-9"
+              />
+            </div>
+          </div>
+
+          {/* Tipo de entrega */}
+          <div className="space-y-3 pt-2">
             <h2 className="text-lg font-semibold text-foreground">
               Tipo de entrega
             </h2>
-            <p className="text-sm text-muted-foreground">
-              Elige si quieres retirar en tienda o recibir el pedido en tu domicilio.
-            </p>
-          </div>
 
-          {/* Radios de tipo de entrega */}
-          <div className="space-y-3 text-base">
-            <label className="flex items-start gap-3 rounded-2xl border border-border bg-white px-4 py-3 text-sm text-foreground">
-              <input
-                type="radio"
-                name="shippingMethod"
-                value="pickup"
-                checked={shippingMethod === "pickup"}
-                onChange={() => setShippingMethod("pickup")}
-                className="mt-[2px] h-4 w-4"
-              />
-              <div>
-                <p className="font-semibold">Retiro en tienda</p>
-                <p className="text-xs text-muted-foreground">
-                  Coordinaremos el lugar y horario exacto una vez confirmada la orden.
-                </p>
-              </div>
-            </label>
+            <div className="space-y-3">
+              <label className="flex items-start gap-3 rounded-2xl border border-border bg-white px-4 py-3 text-sm text-foreground cursor-pointer hover:border-emerald-500">
+                <input
+                  type="radio"
+                  name="deliveryType"
+                  value="pickup"
+                  checked={deliveryType === "pickup"}
+                  onChange={() => setDeliveryType("pickup")}
+                  className="mt-[2px] h-4 w-4"
+                />
+                <div>
+                  <p className="font-semibold">Retiro en tienda</p>
+                  <p className="text-xs text-muted-foreground">
+                    Coordinaremos el lugar y horario exacto una vez confirmada la orden.
+                  </p>
+                </div>
+              </label>
 
-            <label className="flex items-start gap-3 rounded-2xl border border-border bg-white px-4 py-3 text-sm text-foreground">
-              <input
-                type="radio"
-                name="shippingMethod"
-                value="delivery"
-                checked={shippingMethod === "delivery"}
-                onChange={() => setShippingMethod("delivery")}
-                className="mt-[2px] h-4 w-4"
-              />
-              <div>
-                <p className="font-semibold">Envío a domicilio</p>
-                <p className="text-xs text-muted-foreground">
-                  Ingresas tu dirección y calculamos el despacho al coordinar el pedido.
-                </p>
-              </div>
-            </label>
+              <label className="flex items-start gap-3 rounded-2xl border border-border bg-white px-4 py-3 text-sm text-foreground cursor-pointer hover:border-emerald-500">
+                <input
+                  type="radio"
+                  name="deliveryType"
+                  value="delivery"
+                  checked={deliveryType === "delivery"}
+                  onChange={() => setDeliveryType("delivery")}
+                  className="mt-[2px] h-4 w-4"
+                />
+                <div>
+                  <p className="font-semibold">Envío a domicilio</p>
+                  <p className="text-xs text-muted-foreground">
+                    Ingresas tu dirección y calculamos el despacho al coordinar el pedido.
+                  </p>
+                </div>
+              </label>
+            </div>
           </div>
 
           {/* Dirección solo si es envío */}
-          {shippingMethod === "delivery" && (
+          {deliveryType === "delivery" && (
             <div className="space-y-3 pt-2">
               <h3 className="text-sm font-semibold text-foreground">
                 Dirección de envío
@@ -232,17 +263,14 @@ export default function CheckoutPage() {
 
               <div className="space-y-1">
                 <label className="block text-xs font-medium text-foreground">
-                  Dirección
+                  Dirección *
                 </label>
                 <input
-                  className="
-                    w-full rounded-2xl border border-border bg-white
-                    px-3 py-2.5 text-base text-foreground
-                    placeholder:text-muted-foreground
-                    outline-none focus:border-emerald-500 focus:ring-2 focus:ring-emerald-100
-                  "
-                  value={address}
-                  onChange={(e) => setAddress(e.target.value)}
+                  type="text"
+                  value={customerAddress}
+                  onChange={(e) => setCustomerAddress(e.target.value)}
+                  required={deliveryType === "delivery"}
+                  className="w-full rounded-2xl border border-border bg-white px-3 py-2.5 text-base text-foreground placeholder:text-muted-foreground outline-none focus:border-emerald-500 focus:ring-2 focus:ring-emerald-100"
                   placeholder="Ej: Calle 1234, depto. 201"
                 />
               </div>
@@ -250,34 +278,28 @@ export default function CheckoutPage() {
               <div className="grid gap-3 md:grid-cols-2">
                 <div className="space-y-1">
                   <label className="block text-xs font-medium text-foreground">
-                    Ciudad / Comuna
+                    Comuna *
                   </label>
                   <input
-                    className="
-                      w-full rounded-2xl border border-border bg-white
-                      px-3 py-2.5 text-base text-foreground
-                      placeholder:text-muted-foreground
-                      outline-none focus:border-emerald-500 focus:ring-2 focus:ring-emerald-100
-                    "
-                    value={city}
-                    onChange={(e) => setCity(e.target.value)}
+                    type="text"
+                    value={customerCommune}
+                    onChange={(e) => setCustomerCommune(e.target.value)}
+                    required={deliveryType === "delivery"}
+                    className="w-full rounded-2xl border border-border bg-white px-3 py-2.5 text-base text-foreground placeholder:text-muted-foreground outline-none focus:border-emerald-500 focus:ring-2 focus:ring-emerald-100"
                     placeholder="Ej: La Florida"
                   />
                 </div>
 
                 <div className="space-y-1">
                   <label className="block text-xs font-medium text-foreground">
-                    Región
+                    Región *
                   </label>
                   <input
-                    className="
-                      w-full rounded-2xl border border-border bg-white
-                      px-3 py-2.5 text-base text-foreground
-                      placeholder:text-muted-foreground
-                      outline-none focus:border-emerald-500 focus:ring-2 focus:ring-emerald-100
-                    "
-                    value={region}
-                    onChange={(e) => setRegion(e.target.value)}
+                    type="text"
+                    value={customerRegion}
+                    onChange={(e) => setCustomerRegion(e.target.value)}
+                    required={deliveryType === "delivery"}
+                    className="w-full rounded-2xl border border-border bg-white px-3 py-2.5 text-base text-foreground placeholder:text-muted-foreground outline-none focus:border-emerald-500 focus:ring-2 focus:ring-emerald-100"
                     placeholder="Ej: Región Metropolitana"
                   />
                 </div>
@@ -291,12 +313,7 @@ export default function CheckoutPage() {
               Notas para el pedido (opcional)
             </label>
             <textarea
-              className="
-                w-full rounded-2xl border border-border bg-white
-                px-3 py-2.5 text-sm text-foreground
-                placeholder:text-muted-foreground
-                outline-none focus:border-emerald-500 focus:ring-2 focus:ring-emerald-100
-              "
+              className="w-full rounded-2xl border border-border bg-white px-3 py-2.5 text-sm text-foreground placeholder:text-muted-foreground outline-none focus:border-emerald-500 focus:ring-2 focus:ring-emerald-100"
               rows={3}
               value={notes}
               onChange={(e) => setNotes(e.target.value)}
@@ -308,15 +325,10 @@ export default function CheckoutPage() {
           <div className="pt-2">
             <button
               type="submit"
-              disabled={isSubmitting || !isAuthenticated}
-              className="
-                inline-flex items-center justify-center rounded-2xl
-                bg-emerald-600 px-8 py-2.5 text-base font-semibold text-white
-                hover:bg-emerald-500
-                disabled:cursor-not-allowed disabled:opacity-70
-              "
+              disabled={isSubmitting}
+              className="inline-flex items-center justify-center rounded-2xl bg-emerald-600 px-8 py-2.5 text-base font-semibold text-white hover:bg-emerald-500 disabled:cursor-not-allowed disabled:opacity-70"
             >
-              {isSubmitting ? "Generando orden..." : "Generar orden de compra"}
+              {isSubmitting ? "Redirigiendo a Webpay..." : "Continuar al pago"}
             </button>
           </div>
         </form>
@@ -340,7 +352,7 @@ export default function CheckoutPage() {
                   </p>
                 </div>
                 <p className="text-sm font-semibold text-emerald-700">
-                  {currencyCLP.format(item.price * item.quantity)}
+                  {formatCLP(item.total || (toNumber(item.price) * item.quantity))}
                 </p>
               </li>
             ))}
@@ -349,7 +361,7 @@ export default function CheckoutPage() {
           <div className="border-t border-border pt-3 space-y-1">
             <p className="flex items-center justify-between text-base font-semibold text-foreground">
               <span>Total</span>
-              <span>{currencyCLP.format(totalAmount)}</span>
+              <span>{formatCLP(totalAmount)}</span>
             </p>
             <p className="text-xs text-muted-foreground">
               El costo de despacho se coordina y confirma posteriormente.

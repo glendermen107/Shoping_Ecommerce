@@ -81,3 +81,50 @@ export interface Customer {
   ordersCount?: number;
   totalSpent?: number;
 }
+
+// -------------------------
+// 🟩 TIPOS DE PAGINACIÓN
+// -------------------------
+
+export interface PaginatedResponse<T> {
+  items: T[];
+  total: number;
+  page: number;
+  lastPage: number;
+  hasMore: boolean;
+}
+
+export interface ProductFilters {
+  search?: string;
+  categoryId?: number;
+  minPrice?: number;
+  maxPrice?: number;
+  isFeatured?: boolean;
+  isOnSale?: boolean;
+}
+
+export interface PaginationState<T> {
+  items: T[];
+  page: number;
+  limit: number;
+  total: number;
+  lastPage: number;
+  hasMore: boolean;
+  isLoading: boolean;
+  isLoadingMore: boolean;
+  error: string | null;
+  filters: Record<string, any>;
+}
+
+export interface PaginationHookReturn<T> {
+  items: T[];
+  isLoading: boolean;
+  isLoadingMore: boolean;
+  error: string | null;
+  hasMore: boolean;
+  totalCount: number;
+  currentPage: number;
+  loadMore: () => Promise<void>;
+  reset: (newFilters?: Record<string, any>) => void;
+  retry: () => Promise<void>;
+}

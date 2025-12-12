@@ -9,6 +9,7 @@ import { Category } from '../products/entities/category.entity';
 import { Product } from '../products/entities/product.entity';
 import { CreateCategoryDto } from './dto/create-category.dto';
 import { UpdateCategoryDto } from './dto/update-category.dto';
+import { slugify } from '../utils/slugify';
 
 @Injectable()
 export class CategoriesService {
@@ -20,21 +21,8 @@ export class CategoriesService {
     ) { }
 
     /**
-     * Genera un slug a partir del nombre
-     */
-    private generateSlug(name: string): string {
-        return name
-            .toLowerCase()
-            .normalize('NFD')
-            .replace(/[\u0300-\u036f]/g, '') // Eliminar acentos
-            .replace(/[^a-z0-9\s-]/g, '') // Eliminar caracteres especiales
-            .trim()
-            .replace(/\s+/g, '-') // Reemplazar espacios con guiones
-            .replace(/-+/g, '-'); // Eliminar guiones duplicados
-    }
-
-    /**
      * Crear una nueva categoría
+     * El slug se genera automáticamente mediante el hook @BeforeInsert de la entidad
      */
     async create(createCategoryDto: CreateCategoryDto): Promise<Category> {
         const { name } = createCategoryDto;
@@ -50,8 +38,8 @@ export class CategoriesService {
             );
         }
 
-        // Generar slug
-        const slug = this.generateSlug(name);
+        // Generar slug para verificar duplicados
+        const slug = slugify(name);
 
         // Verificar si ya existe una categoría con ese slug
         const existingSlug = await this.categoryRepository.findOne({
@@ -64,12 +52,8 @@ export class CategoriesService {
             );
         }
 
-        // Crear la categoría
-        const category = this.categoryRepository.create({
-            name,
-            slug,
-        });
-
+        // Crear la categoría - el slug se genera automáticamente
+        const category = this.categoryRepository.create(createCategoryDto);
         return this.categoryRepository.save(category);
     }
 
@@ -109,6 +93,7 @@ export class CategoriesService {
 
     /**
      * Actualizar una categoría
+     * El slug se regenera automáticamente mediante el hook @BeforeUpdate de la entidad
      */
     async update(
         id: number,
@@ -128,20 +113,22 @@ export class CategoriesService {
                 );
             }
 
-            // Actualizar nombre y regenerar slug
-            category.name = updateCategoryDto.name;
-            category.slug = this.generateSlug(updateCategoryDto.name);
+            // Generar slug para verificar duplicados
+            const newSlug = slugify(updateCategoryDto.name);
 
             // Verificar si el nuevo slug ya existe (excepto en esta categoría)
             const existingSlug = await this.categoryRepository.findOne({
-                where: { slug: category.slug },
+                where: { slug: newSlug },
             });
 
             if (existingSlug && existingSlug.id !== id) {
                 throw new ConflictException(
-                    `Category with slug "${category.slug}" already exists`,
+                    `Category with slug "${newSlug}" already exists`,
                 );
             }
+
+            // Actualizar nombre - el slug se regenera automáticamente
+            category.name = updateCategoryDto.name;
         }
 
         return this.categoryRepository.save(category);

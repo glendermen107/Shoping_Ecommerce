@@ -6,11 +6,12 @@ import {
     Query,
     UseInterceptors,
     UploadedFile,
+    UploadedFiles,
     BadRequestException,
     InternalServerErrorException,
     UseGuards,
 } from '@nestjs/common';
-import { FileInterceptor } from '@nestjs/platform-express';
+import { FileInterceptor, FilesInterceptor } from '@nestjs/platform-express';
 import { MediaService } from './media.service';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
 import { RolesGuard } from '../auth/guards/roles.guard';
@@ -24,7 +25,7 @@ export class MediaController {
     constructor(private readonly mediaService: MediaService) { }
 
     /**
-     * Upload an image file to MinIO
+     * Upload a single image file to MinIO
      * POST /media/upload
      */
     @Post('upload')
@@ -49,6 +50,48 @@ export class MediaController {
                 throw error;
             }
             throw new InternalServerErrorException('Failed to upload file');
+        }
+    }
+
+    /**
+     * Upload multiple image files to MinIO
+     * POST /media/upload-multiple
+     */
+    @Post('upload-multiple')
+    @UseInterceptors(FilesInterceptor('files', 10)) // Max 10 files
+    async uploadMultiple(
+        @UploadedFiles() files: Express.Multer.File[],
+    ): Promise<{ urls: string[] }> {
+        try {
+            if (!files || files.length === 0) {
+                throw new BadRequestException('No files provided');
+            }
+
+            // Validate file sizes (5MB max per file)
+            const maxSize = 5 * 1024 * 1024; // 5MB in bytes
+            for (const file of files) {
+                if (file.size > maxSize) {
+                    throw new BadRequestException(
+                        `File ${file.originalname} exceeds 5MB limit`,
+                    );
+                }
+            }
+
+            // Upload all files
+            const uploadPromises = files.map((file) =>
+                this.mediaService.upload(file),
+            );
+            const results = await Promise.all(uploadPromises);
+
+            // Extract URLs from results
+            const urls = results.map((result) => result.url);
+
+            return { urls };
+        } catch (error) {
+            if (error instanceof BadRequestException) {
+                throw error;
+            }
+            throw new InternalServerErrorException('Failed to upload files');
         }
     }
 

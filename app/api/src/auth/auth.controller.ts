@@ -1,9 +1,12 @@
-import { Controller, Post, Body, Res, Req, UseGuards } from '@nestjs/common';
+import { Controller, Post, Body, Res, Req, UseGuards, Get } from '@nestjs/common';
 import type { Response, Request } from 'express';
 import { AuthService } from './auth.service';
 import { LoginDto } from './dto/login.dto';
 import { RegisterDto } from './dto/register.dto';
 import { JwtAuthGuard } from './guards/jwt-auth.guard';
+import { RolesGuard } from './guards/roles.guard';
+import { Roles } from './decorators/roles.decorator';
+import { Role } from './models/roles.model';
 
 @Controller('auth')
 export class AuthController {
@@ -37,5 +40,12 @@ export class AuthController {
     @Res({ passthrough: true }) response: Response,
   ) {
     return this.authService.refresh(request, response);
+  }
+
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles(Role.ADMIN)
+  @Get('users')
+  async getAllUsers() {
+    return this.authService.getAllUsers();
   }
 }

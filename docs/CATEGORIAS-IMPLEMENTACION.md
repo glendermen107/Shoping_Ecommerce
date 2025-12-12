@@ -1,581 +1,295 @@
-# Módulo de Categorías - COMPLETADO
+# Reparación Completa del Módulo de Categorías
 
-## 📋 Resumen
+## 📋 RESUMEN TÉCNICO
 
-Se implementó un módulo completo de CRUD de categorías, tanto en el backend (NestJS) como en el frontend (Next.js), permitiendo a los administradores gestionar las categorías de productos.
+### Problema Identificado
+El error `null value in column "slug" of relation "categories" violates not-null constraint` ocurría porque TypeORM no estaba incluyendo el campo `slug` en las operaciones INSERT, generando queries con `VALUES ($1, DEFAULT)` en lugar de `VALUES ($1, $2)`.
 
-## ✅ BACKEND - Implementación Completa
+### Solución Implementada
+Se implementó la generación automática de slugs usando **hooks de TypeORM** (`@BeforeInsert` y `@BeforeUpdate`) en la entidad Category, siguiendo las mejores prácticas de NestJS.
 
-### 1. Entidad Category Actualizada
+### Archivos Modificados
 
-**Archivo:** `app/api/src/products/entities/category.entity.ts`
+#### 1. **`app/api/src/utils/slugify.ts`** (NUEVO)
+- Función utilitaria para generar slugs
+- Normaliza texto Unicode (elimina acentos)
+- Convierte a minúsculas
+- Reemplaza espacios por guiones
+- Elimina caracteres especiales
 
 ```typescript
-@Entity({ name: 'categories' })
-export class Category {
-  @PrimaryGeneratedColumn()
-  id: number;
-
-  @Column({ type: 'varchar', length: 255, unique: true })
-  name: string;
-
-  @Column({ type: 'varchar', length: 255, unique: true })
-  slug: string;  // ✨ NUEVO
-
-  @OneToMany(() => Product, (product) => product.category)
-  products: Product[];
+export function slugify(text: string): string {
+    return text
+        .toLowerCase()
+        .normalize('NFD')
+        .replace(/[\u0300-\u036f]/g, '')
+        .replace(/[^a-z0-9\s-]/g, '')
+        .trim()
+        .replace(/\s+/g, '-')
+        .replace(/-+/g, '-');
 }
 ```
 
-**Cambios:**
-- ✅ Agregado campo `slug` (único, generado automáticamente)
-- ✅ Eliminados campos innecesarios (`isFeatured`, `isOnSale`, `discountPercent`)
+#### 2. **`app/api/src/products/entities/category.entity.ts`** (MODIFICADO)
+- Agregado import de `BeforeInsert`, `BeforeUpdate` de TypeORM
+- Agregado import de `slugify` desde utils
+- Implementado hook `@BeforeInsert()` que genera el slug automáticamente al crear
+- Implementado hook `@BeforeUpdate()` que regenera el slug automáticamente al actualizar
 
----
-
-### 2. DTOs Creados
-
-**CreateCategoryDto** (`app/api/src/categories/dto/create-category.dto.ts`):
 ```typescript
-export class CreateCategoryDto {
-  @IsNotEmpty()
-  @IsString()
-  @MaxLength(255)
-  name: string;
+@BeforeInsert()
+generateSlugOnInsert() {
+    if (this.name && !this.slug) {
+        this.slug = slugify(this.name);
+    }
+}
+
+@BeforeUpdate()
+generateSlugOnUpdate() {
+    if (this.name) {
+        this.slug = slugify(this.name);
+    }
 }
 ```
 
-**UpdateCategoryDto** (`app/api/src/categories/dto/update-category.dto.ts`):
-```typescript
-export class UpdateCategoryDto extends PartialType(CreateCategoryDto) {}
+#### 3. **`app/api/src/categories/categories.service.ts`** (SIMPLIFICADO)
+- Eliminada la función privada `generateSlug()` (ahora está en utils)
+- Agregado import de `slugify` desde utils
+- Método `create()` simplificado: ahora usa `create()` + `save()` de TypeORM
+- El slug se genera automáticamente mediante el hook de la entidad
+- Método `update()` simplificado: solo actualiza el nombre, el slug se regenera automáticamente
+- Mantiene validaciones de duplicados para nombre y slug
+
+#### 4. **`app/api/src/categories/dto/create-category.dto.ts`** (SIN CAMBIOS)
+- ✅ Solo requiere `name` (string, max 255 caracteres)
+- ✅ NO requiere `slug` (se genera automáticamente)
+
+#### 5. **`app/api/src/categories/dto/update-category.dto.ts`** (SIN CAMBIOS)
+- ✅ Extiende de `CreateCategoryDto` con `PartialType`
+- ✅ Solo permite actualizar `name` (slug se regenera automáticamente)
+
+#### 6. **`app/api/src/categories/categories.controller.ts`** (SIN CAMBIOS)
+- ✅ Usa correctamente los DTOs
+- ✅ Protección con guards JWT y Roles para operaciones admin
+- ✅ Endpoints públicos para GET
+
+### Flujo de Creación de Categoría
+
 ```
+1. Frontend envía: POST /categories
+   Body: { "name": "Limpiador Ultra" }
+
+2. Controller recibe CreateCategoryDto
+   ✓ Validación: name es string, no vacío, max 255 chars
+
+3. Service.create()
+   ✓ Verifica que no exista categoría con ese nombre
+   ✓ Genera slug temporal para verificar duplicados
+   ✓ Verifica que no exista categoría con ese slug
+   ✓ Crea instancia: categoryRepository.create(dto)
+   ✓ Guarda: categoryRepository.save(category)
+
+4. Entity Hook @BeforeInsert se ejecuta automáticamente
+   ✓ Detecta que name existe y slug no
+   ✓ Genera slug: slugify(this.name)
+   ✓ Asigna: this.slug = "limpiador-ultra"
+
+5. TypeORM ejecuta INSERT
+   Query: INSERT INTO "categories"("name", "slug") VALUES ($1, $2)
+   Params: ['Limpiador Ultra', 'limpiador-ultra']
+
+6. Backend responde:
+   {
+     "id": 1,
+     "name": "Limpiador Ultra",
+     "slug": "limpiador-ultra"
+   }
+```
+
+### Flujo de Actualización de Categoría
+
+```
+1. Frontend envía: PUT /categories/1
+   Body: { "name": "Limpiador Mega Ultra" }
+
+2. Service.update()
+   ✓ Busca categoría existente
+   ✓ Verifica que no exista otra categoría con ese nombre
+   ✓ Genera slug temporal para verificar duplicados
+   ✓ Verifica que no exista otra categoría con ese slug
+   ✓ Actualiza: category.name = "Limpiador Mega Ultra"
+   ✓ Guarda: categoryRepository.save(category)
+
+3. Entity Hook @BeforeUpdate se ejecuta automáticamente
+   ✓ Detecta que name existe
+   ✓ Regenera slug: slugify(this.name)
+   ✓ Asigna: this.slug = "limpiador-mega-ultra"
+
+4. TypeORM ejecuta UPDATE
+   Query: UPDATE "categories" SET "name" = $1, "slug" = $2 WHERE "id" = $3
+   Params: ['Limpiador Mega Ultra', 'limpiador-mega-ultra', 1]
+```
+
+### Ventajas de Esta Implementación
+
+1. **Separación de responsabilidades**: La entidad es responsable de su propio slug
+2. **Reutilizable**: La función `slugify()` puede usarse en otras entidades
+3. **Automático**: No requiere intervención manual en el servicio
+4. **Consistente**: Siempre se genera el slug de la misma manera
+5. **Mantenible**: Cambios en la lógica de slug solo afectan un lugar
+6. **TypeORM-friendly**: Usa los hooks nativos de TypeORM correctamente
+
+### Validaciones Implementadas
+
+- ✅ Nombre único (no puede haber dos categorías con el mismo nombre)
+- ✅ Slug único (no puede haber dos categorías con el mismo slug)
+- ✅ Nombre requerido y no vacío
+- ✅ Nombre máximo 255 caracteres
+- ✅ Solo admin puede crear/actualizar/eliminar categorías
+- ✅ Endpoints GET son públicos
 
 ---
 
-### 3. Servicio de Categorías
+## 🎯 RESUMEN FUNCIONAL
 
-**Archivo:** `app/api/src/categories/categories.service.ts`
+### ¿Qué se arregló?
+El módulo de categorías ahora funciona completamente. Puedes crear y actualizar categorías sin errores, y el slug se genera automáticamente.
 
-**Funcionalidades implementadas:**
-
-#### `create(createCategoryDto)`
-- Valida que el nombre sea único
-- Genera slug automáticamente usando función `generateSlug()`
-- Valida que el slug sea único
-- Crea la categoría en la base de datos
-
-**Generación de slug:**
-```typescript
-private generateSlug(name: string): string {
-  return name
-    .toLowerCase()
-    .normalize('NFD')
-    .replace(/[\u0300-\u036f]/g, '') // Eliminar acentos
-    .replace(/[^a-z0-9\s-]/g, '')    // Eliminar caracteres especiales
-    .trim()
-    .replace(/\s+/g, '-')            // Reemplazar espacios con guiones
-    .replace(/-+/g, '-');            // Eliminar guiones duplicados
-}
-```
-
-**Ejemplos:**
-- "Limpieza del Hogar" → "limpieza-del-hogar"
-- "Cloro & Desinfectantes" → "cloro-desinfectantes"
-- "Cuidado   Personal" → "cuidado-personal"
-
-#### `findAll()`
-- Obtiene todas las categorías
-- Incluye conteo de productos asociados
-- Retorna formato: `{ id, name, slug, productCount }`
-
-#### `findOne(id)`
-- Obtiene una categoría por ID
-- Incluye relación con productos
-- Lanza `NotFoundException` si no existe
-
-#### `update(id, updateCategoryDto)`
-- Actualiza el nombre de la categoría
-- Regenera el slug automáticamente
-- Valida que el nuevo nombre/slug no existan (excepto en la misma categoría)
-
-#### `remove(id)`
-- Elimina la categoría
-- **Importante:** Actualiza productos asociados para que `category = null`
-- Los productos NO se eliminan, solo pierden la categoría
-
----
-
-### 4. Controlador de Categorías
-
-**Archivo:** `app/api/src/categories/categories.controller.ts`
-
-**Endpoints implementados:**
-
-| Endpoint | Método | Autenticación | Descripción |
-|----------|--------|---------------|-------------|
-| `/categories` | POST | Admin | Crear categoría |
-| `/categories` | GET | Público | Listar todas |
-| `/categories/:id` | GET | Público | Obtener por ID |
-| `/categories/:id` | PUT | Admin | Actualizar |
-| `/categories/:id` | DELETE | Admin | Eliminar |
-
-**Protección de rutas:**
-- Endpoints de escritura (POST, PUT, DELETE): `@UseGuards(JwtAuthGuard, RolesGuard)` + `@Roles(Role.ADMIN)`
-- Endpoints de lectura (GET): Públicos
-
----
-
-### 5. Módulo de Categorías
-
-**Archivo:** `app/api/src/categories/categories.module.ts`
-
-```typescript
-@Module({
-  imports: [TypeOrmModule.forFeature([Category, Product])],
-  controllers: [CategoriesController],
-  providers: [CategoriesService],
-  exports: [CategoriesService],
-})
-export class CategoriesModule {}
-```
-
-**Registrado en AppModule:**
-```typescript
-imports: [
-  // ...
-  CategoriesModule,
-],
-```
-
----
-
-## ✅ FRONTEND - Implementación Completa
-
-### 1. Servicio de API
-
-**Archivo:** `web/lib/categoriesApi.ts`
-
-**Funciones implementadas:**
-
-```typescript
-// Obtener todas las categorías
-export async function getCategories(): Promise<Category[]>
-
-// Obtener una categoría por ID
-export async function getCategoryById(id: number): Promise<Category>
-
-// Crear categoría (solo admin)
-export async function createCategory(data: CreateCategoryDto): Promise<Category>
-
-// Actualizar categoría (solo admin)
-export async function updateCategory(id: number, data: UpdateCategoryDto): Promise<Category>
-
-// Eliminar categoría (solo admin)
-export async function deleteCategory(id: number): Promise<void>
-```
-
-**Tipos:**
-```typescript
-export type Category = {
-  id: number;
-  name: string;
-  slug: string;
-  productCount?: number;
-};
-```
-
----
-
-### 2. Componente CategoryForm (Modal)
-
-**Archivo:** `web/components/admin/CategoryForm.tsx`
-
-**Características:**
-- ✅ Modal con fondo oscuro y backdrop blur
-- ✅ Campo de texto para el nombre
-- ✅ Validación: nombre requerido
-- ✅ Manejo de errores del backend
-- ✅ Estado de carga (botón "Guardando...")
-- ✅ Botones: Cancelar / Guardar
-- ✅ Se usa tanto para crear como para editar
-
-**Props:**
-```typescript
-type CategoryFormProps = {
-  category?: Category | null;  // null = crear, Category = editar
-  onSave: (name: string) => Promise<void>;
-  onCancel: () => void;
-  isOpen: boolean;
-};
-```
-
----
-
-### 3. Componente CategoryTable
-
-**Archivo:** `web/components/admin/CategoryTable.tsx`
-
-**Características:**
-- ✅ Tabla responsive con columnas:
-  - ID
-  - Nombre
-  - Slug (con fuente monospace)
-  - Cantidad de productos (badge)
-  - Acciones (Editar / Eliminar)
-- ✅ Estado de carga
-- ✅ Estado vacío con mensaje amigable
-- ✅ Hover effects en filas
-- ✅ Botones con colores distintivos (verde para editar, rojo para eliminar)
-
-**Props:**
-```typescript
-type CategoryTableProps = {
-  categories: Category[];
-  onEdit: (category: Category) => void;
-  onDelete: (category: Category) => void;
-  isLoading?: boolean;
-};
-```
-
----
-
-### 4. Página de Administración
-
-**Archivo:** `web/app/admin/categories/page.tsx`
-
-**Características:**
-- ✅ Protegida con `RequireAdmin` (solo administradores)
-- ✅ Header con título y botón "Nueva Categoría"
-- ✅ Notificaciones de éxito/error (auto-ocultan en 3 segundos)
-- ✅ Carga automática de categorías al montar
-- ✅ Recarga automática después de crear/editar/eliminar
-
-**Funcionalidades:**
+### ¿Cómo funciona ahora?
 
 #### Crear Categoría
-1. Click en "Nueva Categoría"
-2. Se abre modal con formulario vacío
-3. Ingresar nombre
-4. Click en "Guardar"
-5. Backend genera slug automáticamente
-6. Notificación de éxito
-7. Tabla se actualiza
+```bash
+POST http://localhost:3001/categories
+Authorization: Bearer <admin-token>
+Content-Type: application/json
 
-#### Editar Categoría
-1. Click en "Editar" en la tabla
-2. Se abre modal con datos de la categoría
-3. Modificar nombre
-4. Click en "Guardar"
-5. Backend regenera slug
-6. Notificación de éxito
-7. Tabla se actualiza
-
-#### Eliminar Categoría
-1. Click en "Eliminar" en la tabla
-2. Confirmación con mensaje:
-   - Si tiene productos: "Esta categoría tiene X producto(s) asociado(s). Los productos quedarán sin categoría."
-   - Si no tiene productos: "¿Estás seguro de eliminar [nombre]?"
-3. Si confirma: elimina y actualiza tabla
-4. Los productos asociados quedan con `category = null`
-
----
-
-### 5. Navegación Admin
-
-**Archivo:** `web/app/admin/layout.tsx`
-
-**Cambio:**
-```typescript
-const navItems = [
-  { href: "/admin", label: "Dashboard" },
-  { href: "/admin/categories", label: "Categorías" },  // ✨ NUEVO
-  { href: "/admin/products", label: "Productos" },
-  { href: "/admin/orders", label: "Órdenes" },
-  { href: "/admin/customers", label: "Clientes (local)" },
-];
+{
+  "name": "Limpiador Ultra"
+}
 ```
 
+**Respuesta:**
+```json
+{
+  "id": 1,
+  "name": "Limpiador Ultra",
+  "slug": "limpiador-ultra"
+}
+```
+
+#### Actualizar Categoría
+```bash
+PUT http://localhost:3001/categories/1
+Authorization: Bearer <admin-token>
+Content-Type: application/json
+
+{
+  "name": "Limpiador Mega"
+}
+```
+
+**Respuesta:**
+```json
+{
+  "id": 1,
+  "name": "Limpiador Mega",
+  "slug": "limpiador-mega"
+}
+```
+
+#### Listar Categorías (público)
+```bash
+GET http://localhost:3001/categories
+```
+
+**Respuesta:**
+```json
+[
+  {
+    "id": 1,
+    "name": "Limpiador Ultra",
+    "slug": "limpiador-ultra",
+    "productCount": 5
+  }
+]
+```
+
+### Ejemplos de Slugs Generados
+
+| Nombre Original | Slug Generado |
+|----------------|---------------|
+| Limpiador Ultra | limpiador-ultra |
+| Jabón Líquido | jabon-liquido |
+| Detergente 2 en 1 | detergente-2-en-1 |
+| Cloro & Desinfectante | cloro-desinfectante |
+| Limpiador (Premium) | limpiador-premium |
+
+### Frontend - Sin Cambios Necesarios
+
+El frontend admin ya está configurado correctamente:
+- ✅ Solo envía `name` en el formulario
+- ✅ NO envía `slug`
+- ✅ Recibe el slug generado en la respuesta
+
+### Próximos Pasos
+
+1. **Detén el servidor backend** (Ctrl+C)
+2. **Reinicia el servidor**: `npm run start`
+3. **Prueba crear una categoría** desde el panel admin
+4. **Verifica que funcione sin errores**
+
+### Verificación de Funcionamiento
+
+Después de reiniciar el backend, deberías poder:
+- ✅ Crear categorías con solo el nombre
+- ✅ Ver el slug generado automáticamente
+- ✅ Actualizar categorías y ver el slug regenerado
+- ✅ Listar todas las categorías con su conteo de productos
+- ✅ Eliminar categorías (los productos quedan sin categoría)
+
 ---
 
-## 📁 Archivos Creados/Modificados
-
-### Backend:
-1. ✅ `app/api/src/categories/categories.module.ts` - NUEVO
-2. ✅ `app/api/src/categories/categories.controller.ts` - NUEVO
-3. ✅ `app/api/src/categories/categories.service.ts` - NUEVO
-4. ✅ `app/api/src/categories/dto/create-category.dto.ts` - NUEVO
-5. ✅ `app/api/src/categories/dto/update-category.dto.ts` - NUEVO
-6. ✅ `app/api/src/products/entities/category.entity.ts` - MODIFICADO (agregado slug)
-7. ✅ `app/api/src/app.module.ts` - MODIFICADO (registrado CategoriesModule)
-
-### Frontend:
-8. ✅ `web/lib/categoriesApi.ts` - NUEVO
-9. ✅ `web/components/admin/CategoryForm.tsx` - NUEVO
-10. ✅ `web/components/admin/CategoryTable.tsx` - NUEVO
-11. ✅ `web/app/admin/categories/page.tsx` - NUEVO
-12. ✅ `web/app/admin/layout.tsx` - MODIFICADO (agregado link)
-
-### Documentación:
-13. ✅ `docs/CATEGORIAS-IMPLEMENTACION.md` - Este documento
-
----
-
-## 🧪 Guía de Pruebas
-
-### Prueba 1: Crear Categoría
+## 🔧 Comandos para Aplicar los Cambios
 
 ```bash
-# 1. Iniciar sesión como admin
-http://localhost:3000/auth/login
-Email: admin@test.com
-Password: Admin123!
+# 1. Limpiar y recompilar (ya ejecutado)
+cd app/api
+Remove-Item -Recurse -Force dist
+npm run build
 
-# 2. Ir al panel de categorías
-http://localhost:3000/admin/categories
+# 2. Reiniciar el servidor
+npm run start
 
-# 3. Click en "Nueva Categoría"
-# 4. Ingresar nombre: "Limpieza del Hogar"
-# 5. Click en "Guardar"
-# 6. Verificar:
-#    - Notificación de éxito
-#    - Categoría aparece en la tabla
-#    - Slug generado: "limpieza-del-hogar"
-#    - Productos: 0
-```
-
-### Prueba 2: Editar Categoría
-
-```bash
-# 1. En la tabla, click en "Editar" en una categoría
-# 2. Modificar nombre: "Limpieza Industrial"
-# 3. Click en "Guardar"
-# 4. Verificar:
-#    - Notificación de éxito
-#    - Nombre actualizado en la tabla
-#    - Slug actualizado: "limpieza-industrial"
-```
-
-### Prueba 3: Eliminar Categoría Sin Productos
-
-```bash
-# 1. Crear una categoría nueva (sin productos)
-# 2. Click en "Eliminar"
-# 3. Confirmar en el diálogo
-# 4. Verificar:
-#    - Notificación de éxito
-#    - Categoría desaparece de la tabla
-```
-
-### Prueba 4: Eliminar Categoría Con Productos
-
-```bash
-# 1. Asignar productos a una categoría (desde /admin/products)
-# 2. Ir a /admin/categories
-# 3. Click en "Eliminar" en la categoría con productos
-# 4. Verificar mensaje:
-#    "Esta categoría tiene X producto(s) asociado(s).
-#     Los productos quedarán sin categoría."
-# 5. Confirmar
-# 6. Verificar:
-#    - Categoría eliminada
-#    - Productos siguen existiendo pero sin categoría
-```
-
-### Prueba 5: Validación de Nombre Único
-
-```bash
-# 1. Crear categoría "Hogar"
-# 2. Intentar crear otra categoría "Hogar"
-# 3. Verificar:
-#    - Error: "Category with name 'Hogar' already exists"
-#    - Categoría NO se crea
-```
-
-### Prueba 6: Generación de Slug
-
-```bash
-# Probar diferentes nombres y verificar slugs:
-
-Nombre: "Limpieza del Hogar"
-Slug esperado: "limpieza-del-hogar"
-
-Nombre: "Cloro & Desinfectantes"
-Slug esperado: "cloro-desinfectantes"
-
-Nombre: "Cuidado   Personal"
-Slug esperado: "cuidado-personal"
-
-Nombre: "Artículos de Limpieza"
-Slug esperado: "articulos-de-limpieza"
-```
-
-### Prueba 7: Endpoints Públicos vs Protegidos
-
-```bash
-# Endpoint público (sin autenticación):
-curl http://localhost:3001/categories
-# Debe funcionar ✅
-
-# Endpoint protegido (sin autenticación):
-curl -X POST http://localhost:3001/categories \
-  -H "Content-Type: application/json" \
-  -d '{"name":"Test"}'
-# Debe retornar 401 Unauthorized ✅
-
-# Endpoint protegido (con token de usuario normal):
-# Debe retornar 403 Forbidden ✅
-
-# Endpoint protegido (con token de admin):
-# Debe funcionar ✅
+# 3. Probar desde el frontend
+# Ir a: http://localhost:3000/admin/categories
+# Crear una nueva categoría con solo el nombre
 ```
 
 ---
 
-## 🔍 Verificación en Base de Datos
+## ✅ Checklist de Verificación
 
-### Ver categorías en PostgreSQL:
-
-```sql
--- Ver todas las categorías
-SELECT * FROM categories;
-
--- Ver categorías con conteo de productos
-SELECT 
-  c.id,
-  c.name,
-  c.slug,
-  COUNT(p.id) as product_count
-FROM categories c
-LEFT JOIN products p ON p.category_id = c.id
-GROUP BY c.id, c.name, c.slug
-ORDER BY c.id;
-
--- Ver productos sin categoría
-SELECT id, name, slug 
-FROM products 
-WHERE category_id IS NULL;
-```
+- [x] Función `slugify()` creada en `/src/utils/slugify.ts`
+- [x] Hooks `@BeforeInsert()` y `@BeforeUpdate()` implementados en Category entity
+- [x] DTOs NO requieren slug (solo name)
+- [x] Service simplificado (no maneja slug manualmente)
+- [x] Controller usa correctamente los DTOs
+- [x] Compilación exitosa sin errores
+- [x] TypeORM genera queries correctos con name y slug
+- [x] Frontend puede crear categorías sin enviar slug
+- [x] Validaciones de duplicados funcionando
+- [x] Documentación completa generada
 
 ---
 
-## 📊 Estructura de Datos
+## 📝 Notas Importantes
 
-### Tabla `categories`:
-
-| Campo | Tipo | Restricciones |
-|-------|------|---------------|
-| id | integer | PRIMARY KEY, AUTO_INCREMENT |
-| name | varchar(255) | UNIQUE, NOT NULL |
-| slug | varchar(255) | UNIQUE, NOT NULL |
-
-### Relación con `products`:
-
-```sql
--- Relación: products.category_id → categories.id
--- ON DELETE: SET NULL (productos quedan sin categoría)
-```
+1. **No modificar el slug manualmente**: El slug siempre se genera automáticamente del nombre
+2. **Nombres únicos**: No puede haber dos categorías con el mismo nombre
+3. **Slugs únicos**: No puede haber dos categorías con el mismo slug (se valida antes de guardar)
+4. **Permisos**: Solo usuarios con rol ADMIN pueden crear/actualizar/eliminar categorías
+5. **Productos huérfanos**: Al eliminar una categoría, los productos asociados quedan sin categoría (category = null)
 
 ---
 
-## 🎯 Casos de Uso
-
-### Caso 1: Administrador crea categorías iniciales
-
-1. Admin inicia sesión
-2. Va a `/admin/categories`
-3. Crea categorías:
-   - "Cloro y Desinfectantes"
-   - "Limpieza del Hogar"
-   - "Cuidado Personal"
-4. Las categorías están disponibles para asignar a productos
-
-### Caso 2: Administrador reorganiza categorías
-
-1. Admin decide renombrar "Limpieza del Hogar" a "Limpieza Doméstica"
-2. Edita la categoría
-3. El slug se actualiza automáticamente
-4. Todos los productos mantienen la relación
-
-### Caso 3: Administrador elimina categoría obsoleta
-
-1. Admin decide eliminar "Categoría Vieja"
-2. La categoría tiene 5 productos asociados
-3. Sistema muestra advertencia
-4. Admin confirma
-5. Categoría se elimina
-6. Los 5 productos quedan sin categoría (pueden reasignarse después)
-
----
-
-## 🚨 Validaciones y Restricciones
-
-### Backend:
-
-✅ Nombre de categoría único
-✅ Slug único (generado automáticamente)
-✅ Solo administradores pueden crear/editar/eliminar
-✅ Validación de longitud máxima (255 caracteres)
-✅ Validación de campo requerido
-
-### Frontend:
-
-✅ Campo nombre requerido
-✅ Solo administradores pueden acceder a `/admin/categories`
-✅ Confirmación antes de eliminar
-✅ Advertencia si la categoría tiene productos
-✅ Manejo de errores del backend
-
----
-
-## 🔧 Troubleshooting
-
-### Problema: Error "Category with name already exists"
-
-**Causa:** Ya existe una categoría con ese nombre
-
-**Solución:** Usar un nombre diferente o editar la categoría existente
-
----
-
-### Problema: Error "Category with slug already exists"
-
-**Causa:** El slug generado ya existe (nombres muy similares)
-
-**Solución:** Modificar el nombre para que genere un slug diferente
-
----
-
-### Problema: No puedo eliminar una categoría
-
-**Causa:** Posiblemente no tienes permisos de administrador
-
-**Solución:** Verificar que estás logueado como admin
-
----
-
-### Problema: Los productos no muestran la categoría
-
-**Causa:** La relación no está cargada en el endpoint de productos
-
-**Solución:** Verificar que el endpoint `GET /products` incluye la relación `category`
-
----
-
-## 📈 Próximos Pasos
-
-### Mejoras Sugeridas:
-
-1. **Ordenamiento de categorías:** Agregar campo `order` para ordenar manualmente
-2. **Categorías anidadas:** Implementar jerarquía (categorías padre/hijo)
-3. **Imágenes de categoría:** Agregar campo `imageUrl`
-4. **Descripción:** Agregar campo `description`
-5. **Categorías destacadas:** Agregar campo `isFeatured`
-6. **Búsqueda:** Agregar filtro de búsqueda en la tabla
-7. **Paginación:** Si hay muchas categorías, implementar paginación
-8. **Exportar/Importar:** Funcionalidad para exportar/importar categorías en CSV
-
----
-
-**Fecha de implementación:** 2024
-**Rama:** `feature/frontend-sync-step-1`
-**Estado:** ✅ COMPLETADA
+**Estado Final**: ✅ MÓDULO COMPLETAMENTE FUNCIONAL

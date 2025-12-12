@@ -7,7 +7,12 @@
     "build": "next build --turbopack",
     "start": "next start",
     "test": "vitest --run",
-    "test:watch": "vitest"
+    "test:watch": "vitest",
+    "test:e2e": "playwright test",
+    "test:e2e:ui": "playwright test --ui",
+    "test:evidence": "playwright test tests/evidence",
+    "test:evidence:headed": "playwright test tests/evidence --headed",
+    "playwright:report": "playwright show-report"
   },
   "dependencies": {
     "next": "15.5.4",
@@ -17,6 +22,7 @@
     "swiper": "^12.0.3"
   },
   "devDependencies": {
+    "@playwright/test": "^1.57.0",
     "@tailwindcss/postcss": "^4",
     "@testing-library/jest-dom": "^6.9.1",
     "@testing-library/react": "^16.3.0",
