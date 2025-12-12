@@ -58,7 +58,7 @@ export default function ContactoPage() {
           <p>
             <span className="font-medium">Correo: </span>
             <a
-              href="mailto:contacto@tulimpieza.cl"
+              href="mailto:cleaningsale04@gmail.com"
               className="underline text-emerald-700"
             >
               contacto@tulimpieza.cl

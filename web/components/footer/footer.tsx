@@ -11,7 +11,7 @@ export default function Footer() {
         <div className="space-y-2 flex flex-col">
           <div className="flex items-center gap-3">
             <Image
-              src="/logo.jpeg"
+              src="/favicon.ico"
               alt="Cleaning Line GP"
               width={45}
               height={45}
@@ -44,12 +44,25 @@ export default function Footer() {
           <p className="font-semibold text-neutral-700">Contacto</p>
           <p>
             WhatsApp:{" "}
-            <span className="underline">+56 9 0000 0000</span>
+            <span className="underline">+56 9 6363 9873</span>
           </p>
           <p>
+            
             Correo:{" "}
-            <a href="mailto:contacto@tulimpieza.cl" className="underline">
-              contacto@tulimpieza.cl
+            <a href="mailto:cleaningsale04@gmail.com" className="underline">
+              cleaningsale04@gmail.com
+            </a>
+          </p>
+          <p>
+            Instagram:{" "}
+            <a href="https://www.instagram.com/cleaning_line_gp?utm_source=ig_web_button_share_sheet&igsh=ZDNlZDc0MzIxNw==">
+            Cleaning_Line_GP
+            </a>
+          </p>
+          <p>
+            Facebook:{" "}
+            <a href="https://www.facebook.com/share/17VJrX4rYm/">
+            Cleaning_Line_GP
             </a>
           </p>
           <p className="text-neutral-500">

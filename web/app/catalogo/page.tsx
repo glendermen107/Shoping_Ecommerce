@@ -2,6 +2,8 @@
 import CatalogoClient from "./CatalogoClient";
 import { getCategories } from "../../lib/categoriesApi";
 
+import CatalogFilters from "../catalogo/catalogoFilters";
+
 type CatalogoPageProps = {
   searchParams?: {
     q?: string;
