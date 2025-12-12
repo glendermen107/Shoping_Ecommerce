@@ -23,7 +23,7 @@ export class CartService {
     private readonly cartItemRepository: Repository<CartItem>,
     private readonly productsService: ProductsService,
     private readonly redisService: RedisService,
-  ) {}
+  ) { }
 
   // --- Métodos para usuarios autenticados (PostgreSQL) ---
 
@@ -180,7 +180,7 @@ export class CartService {
 
     let subtotal = 0;
     const formattedItems = cart.items.map((item) => {
-      const price = isGuest ? item.price : item.product.price;
+      const price = isGuest ? Number(item.price) : Number(item.product.price);
       const totalItemPrice = item.quantity * price;
       subtotal += totalItemPrice;
 
@@ -188,8 +188,8 @@ export class CartService {
         productId: isGuest ? item.productId : item.product.id,
         name: isGuest ? item.name : item.product.name,
         quantity: item.quantity,
-        price: price,
-        total: totalItemPrice,
+        price: price, // Ya es número
+        total: parseFloat(totalItemPrice.toFixed(2)),
         imageUrl: isGuest ? item.imageUrl : item.product.imageUrl,
       };
     });

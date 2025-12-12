@@ -151,4 +151,13 @@ export class AuthService {
       throw new UnauthorizedException('Invalid or expired refresh token');
     }
   }
+
+  async getAllUsers() {
+    const users = await this.userRepository.find({
+      select: ['id', 'email', 'roles'],
+      order: { id: 'DESC' },
+    });
+
+    return users;
+  }
 }

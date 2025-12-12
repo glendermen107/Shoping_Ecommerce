@@ -3,6 +3,7 @@ import Link from "next/link";
 import OffersCarousel from "../components/carousel/offersCarousel";
 import ProductGrid from "../components/products/productGrid";
 import { fetchProducts } from "../lib/api";
+import { getFinalPrice, formatCLP } from "../lib/price";
 
 export default async function HomePage() {
   const products = await fetchProducts();
@@ -91,7 +92,7 @@ export default async function HomePage() {
                       {p.category?.name ?? "Producto de limpieza"}
                     </p>
                     <p className="mt-1 text-sm font-semibold text-emerald-800">
-                      ${Number(p.price).toLocaleString("es-CL")}
+                      {formatCLP(getFinalPrice(p))}
                     </p>
                   </div>
                 ))}

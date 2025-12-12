@@ -71,6 +71,54 @@ export async function uploadImage(file: File): Promise<{ url: string }> {
         throw new Error(error.message || 'Failed to upload image');
     }
 }
+
+/**
+ * Upload multiple image files to MinIO storage
+ * POST /media/upload-multiple
+ * 
+ * @param files - Array of image files to upload
+ * @returns Promise with array of uploaded image URLs
+ * @throws Error if upload fails
+ */
+export async function uploadImages(files: File[]): Promise<{ urls: string[] }> {
+    try {
+        // Create FormData with all files
+        const formData = new FormData();
+        files.forEach((file) => {
+            formData.append('files', file);
+        });
+
+        // Get access token for authentication
+        const accessToken = getAccessToken();
+
+        // Prepare headers (don't set Content-Type for FormData - browser will set it with boundary)
+        const headers: Record<string, string> = {};
+        if (accessToken) {
+            headers['Authorization'] = `Bearer ${accessToken}`;
+        }
+
+        // Make POST request to upload-multiple endpoint
+        const response = await fetch(`${API_BASE_URL}/media/upload-multiple`, {
+            method: 'POST',
+            headers,
+            body: formData,
+            credentials: 'include',
+        });
+
+        // Handle upload errors
+        if (!response.ok) {
+            const errorData = await response.json().catch(() => ({}));
+            throw new Error(errorData.message || `Upload failed with status ${response.status}`);
+        }
+
+        // Parse and return the response with URLs
+        const data: { urls: string[] } = await response.json();
+        return { urls: data.urls };
+    } catch (error: any) {
+        console.error('Error uploading images:', error);
+        throw new Error(error.message || 'Failed to upload images');
+    }
+}
 /**
  * Get list of all uploaded images
  * GET /media/list

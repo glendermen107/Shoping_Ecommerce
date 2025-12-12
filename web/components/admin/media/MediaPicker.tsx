@@ -70,12 +70,21 @@ export default function MediaPicker({
 
     /**
      * Handle image uploaded
-     * Adds new image to list and switches to library tab
+     * Adds new image to list, auto-selects it, and immediately adds to form
      */
     const handleImageUploaded = useCallback((url: string) => {
         setImages((prev) => [url, ...prev]);
+        // Auto-select newly uploaded image
+        setSelectedUrls((prev) => {
+            const updated = [...prev, url];
+            // Schedule onSelect to run after render completes
+            setTimeout(() => {
+                onSelect(updated);
+            }, 0);
+            return updated;
+        });
         setActiveTab('library');
-    }, []);
+    }, [onSelect]);
 
     /**
      * Handle toggle selection

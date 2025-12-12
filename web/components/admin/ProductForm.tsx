@@ -5,6 +5,7 @@ import type { Product } from "../../lib/types";
 import type { Category } from "../../lib/categoriesApi";
 import type { CreateProductDto } from "../../lib/productsApi";
 import MediaPicker from "./media/MediaPicker";
+import { toNumber, formatPriceInput, parsePriceInput } from "../../lib/price";
 
 // Internal form data type that supports multiple images
 type ProductFormData = Omit<CreateProductDto, 'imageUrl'> & {
@@ -30,6 +31,7 @@ export default function ProductForm({
         name: "",
         description: "",
         price: 0,
+        slug: "",
         stock: 0,
         imageUrl: [],
         categoryId: 0,
@@ -40,6 +42,7 @@ export default function ProductForm({
     const [errors, setErrors] = useState<Record<string, string>>({});
     const [isSubmitting, setIsSubmitting] = useState(false);
     const [isMediaPickerOpen, setIsMediaPickerOpen] = useState(false);
+    const [priceDisplay, setPriceDisplay] = useState("");
 
     // Cargar datos del producto al abrir para edición
     useEffect(() => {
@@ -53,10 +56,12 @@ export default function ProductForm({
                         ? [product.imageUrl]
                         : [];
 
+                const price = toNumber(product.price);
                 setFormData({
                     name: product.name,
                     description: product.description || "",
-                    price: Number(product.price),
+                    price: price,
+                    slug: product.slug || "",
                     stock: product.stock || 0,
                     imageUrl: images,
                     categoryId: product.category?.id || 0,
@@ -64,12 +69,14 @@ export default function ProductForm({
                     isOnSale: product.isOnSale || false,
                     discountPercent: product.discountPercent || null,
                 });
+                setPriceDisplay(formatPriceInput(price.toString()));
             } else {
                 // Modo creación
                 setFormData({
                     name: "",
                     description: "",
                     price: 0,
+                    slug: "",
                     stock: 0,
                     imageUrl: [],
                     categoryId: 0,
@@ -77,6 +84,7 @@ export default function ProductForm({
                     isOnSale: false,
                     discountPercent: null,
                 });
+                setPriceDisplay("");
             }
             setErrors({});
         }
@@ -112,6 +120,18 @@ export default function ProductForm({
         return Object.keys(newErrors).length === 0;
     };
 
+    // Generate slug from name
+    const generateSlug = (name: string): string => {
+        return name
+            .toLowerCase()
+            .normalize('NFD')
+            .replace(/[\u0300-\u036f]/g, '') // Remove accents
+            .replace(/[^a-z0-9\s-]/g, '') // Remove special chars
+            .trim()
+            .replace(/\s+/g, '-') // Replace spaces with hyphens
+            .replace(/-+/g, '-'); // Remove duplicate hyphens
+    };
+
     // Manejar submit
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
@@ -131,6 +151,11 @@ export default function ProductForm({
             // Build data object without imageUrl first
             const { imageUrl: _, ...restData } = formData;
             const dataToSend: any = { ...restData };
+
+            // Auto-generate slug if not provided or empty
+            if (!dataToSend.slug || dataToSend.slug.trim() === '') {
+                dataToSend.slug = generateSlug(formData.name);
+            }
 
             // Only include imageUrl if we have at least one valid image URL
             if (images.length > 0) {
@@ -157,6 +182,7 @@ export default function ProductForm({
                 name: "",
                 description: "",
                 price: 0,
+                slug: "",
                 stock: 0,
                 imageUrl: [],
                 categoryId: 0,
@@ -166,14 +192,30 @@ export default function ProductForm({
             });
             setErrors({});
             setIsMediaPickerOpen(false);
+            setPriceDisplay("");
             onClose();
         }
     };
 
     // Manejar selección de imágenes desde MediaPicker
     const handleImagesSelected = (urls: string[]) => {
-        setFormData({ ...formData, imageUrl: urls });
-        setIsMediaPickerOpen(false);
+        // Combine new URLs with existing ones, avoiding duplicates
+        const existingUrls = Array.isArray(formData.imageUrl) ? formData.imageUrl : [];
+        const newUrls = urls.filter(url => !existingUrls.includes(url));
+        const combinedUrls = [...existingUrls, ...newUrls];
+
+        setFormData({ ...formData, imageUrl: combinedUrls });
+        // Don't close the picker automatically - let user continue browsing/uploading
+    };
+
+    // Manejar cambio de precio con formato automático
+    const handlePriceChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+        const value = e.target.value;
+        const formatted = formatPriceInput(value);
+        const numericValue = parsePriceInput(formatted);
+
+        setPriceDisplay(formatted);
+        setFormData({ ...formData, price: numericValue });
     };
 
     if (!open) return null;
@@ -252,14 +294,11 @@ export default function ProductForm({
                                 Precio (CLP) *
                             </label>
                             <input
-                                type="number"
-                                min="0"
-                                step="1"
-                                value={formData.price}
-                                onChange={(e) =>
-                                    setFormData({ ...formData, price: Number(e.target.value) })
-                                }
+                                type="text"
+                                value={priceDisplay}
+                                onChange={handlePriceChange}
                                 disabled={isSubmitting}
+                                placeholder="$0"
                                 className={`
                   w-full rounded-lg border bg-white
                   px-4 py-2 text-sm text-slate-800

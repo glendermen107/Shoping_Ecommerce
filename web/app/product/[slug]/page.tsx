@@ -6,13 +6,7 @@ import type { Product } from "../../../lib/types";
 import { fetchProducts } from "../../../lib/api";
 import Link from "next/link";
 import { useCart } from "../../../components/cart/cartContext";
-
-// Formato moneda CLP
-const currencyCLP = new Intl.NumberFormat("es-CL", {
-  style: "currency",
-  currency: "CLP",
-  maximumFractionDigits: 0,
-});
+import { getFinalPrice, formatCLP, toNumber } from "../../../lib/price";
 
 export default function ProductPage() {
   const { slug } = useParams();
@@ -131,8 +125,13 @@ export default function ProductPage() {
           {/* Precio + stock */}
           <div className="space-y-1">
             <p className="text-2xl font-semibold text-foreground">
-              {currencyCLP.format(Number(product.price) || 0)}
+              {formatCLP(getFinalPrice(product))}
             </p>
+            {product.isOnSale && product.discountPercent && (
+              <p className="text-sm text-muted-foreground line-through">
+                Antes: {formatCLP(toNumber(product.price))}
+              </p>
+            )}
             <p className="text-base text-muted-foreground">
               Stock disponible: {stock} unidades
             </p>

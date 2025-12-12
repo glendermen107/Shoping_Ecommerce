@@ -1,7 +1,7 @@
 // web/app/admin/products/page.tsx
 "use client";
 
-import { useEffect, useState, useMemo } from "react";
+import { useEffect, useState, useMemo, useCallback, useRef } from "react";
 import RequireAdmin from "../../../components/auth/requireAdmin";
 import ProductForm from "../../../components/admin/ProductForm";
 import type { Product } from "../../../lib/types";
@@ -20,20 +20,39 @@ function AdminProductsPageContent() {
   const [categories, setCategories] = useState<Category[]>([]);
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState("");
+  const [debouncedSearch, setDebouncedSearch] = useState("");
   const [categoryFilter, setCategoryFilter] = useState<string>("all");
   const [currentPage, setCurrentPage] = useState(1);
   const [isFormOpen, setIsFormOpen] = useState(false);
   const [selectedProduct, setSelectedProduct] = useState<Product | null>(null);
   const { toast, showToast } = useToast();
+  const debounceTimerRef = useRef<NodeJS.Timeout | null>(null);
 
   const ITEMS_PER_PAGE = 10;
 
+  // Debounce para la búsqueda (300ms)
+  useEffect(() => {
+    if (debounceTimerRef.current) {
+      clearTimeout(debounceTimerRef.current);
+    }
+
+    debounceTimerRef.current = setTimeout(() => {
+      setDebouncedSearch(search);
+    }, 300);
+
+    return () => {
+      if (debounceTimerRef.current) {
+        clearTimeout(debounceTimerRef.current);
+      }
+    };
+  }, [search]);
+
   // Cargar datos
-  const loadData = async () => {
+  const loadData = useCallback(async () => {
     try {
       setLoading(true);
       const [productsData, categoriesData] = await Promise.all([
-        getProducts({ search, category: categoryFilter }),
+        getProducts({ search: debouncedSearch, category: categoryFilter }),
         getCategories(),
       ]);
       setProducts(productsData);
@@ -44,11 +63,11 @@ function AdminProductsPageContent() {
     } finally {
       setLoading(false);
     }
-  };
+  }, [debouncedSearch, categoryFilter]);
 
   useEffect(() => {
     loadData();
-  }, [search, categoryFilter]);
+  }, [loadData]);
 
   // Paginación
   const totalPages = Math.ceil(products.length / ITEMS_PER_PAGE);
@@ -60,7 +79,7 @@ function AdminProductsPageContent() {
   // Resetear página cuando cambian los filtros
   useEffect(() => {
     setCurrentPage(1);
-  }, [search, categoryFilter]);
+  }, [debouncedSearch, categoryFilter]);
 
   // Abrir formulario para crear
   const handleCreate = () => {
@@ -98,12 +117,6 @@ function AdminProductsPageContent() {
 
   // Eliminar producto
   const handleDelete = async (product: Product) => {
-    const confirmMessage = `¿Estás seguro de eliminar "${product.name}"?\n\nEsta acción no se puede deshacer.`;
-
-    if (!window.confirm(confirmMessage)) {
-      return;
-    }
-
     try {
       await deleteProduct(product.id);
       showToast("Producto eliminado correctamente", "success");
@@ -280,10 +293,10 @@ function AdminProductsPageContent() {
                       {product.stock !== undefined ? (
                         <span
                           className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${product.stock > 50
-                              ? "bg-green-100 text-green-800"
-                              : product.stock > 0
-                                ? "bg-yellow-100 text-yellow-800"
-                                : "bg-red-100 text-red-800"
+                            ? "bg-green-100 text-green-800"
+                            : product.stock > 0
+                              ? "bg-yellow-100 text-yellow-800"
+                              : "bg-red-100 text-red-800"
                             }`}
                         >
                           {product.stock} unidades

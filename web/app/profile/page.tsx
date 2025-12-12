@@ -61,42 +61,37 @@ export default function ProfilePage() {
     setTimeout(() => setSavedMessage(""), 2500);
   };
 
-  // Cargar pedidos desde localStorage
+  // Cargar pedidos desde el backend API
   useEffect(() => {
     if (!user) return;
-    if (typeof window === "undefined") return;
 
-    try {
-      const raw = window.localStorage.getItem("orders");
-      if (!raw) {
+    const loadOrders = async () => {
+      try {
+        const { getMyOrders } = await import("../../lib/ordersApi");
+        const orders = await getMyOrders();
+
+        const mapped: LocalOrderSummary[] = orders
+          .sort((a, b) => {
+            const da = new Date(a.createdAt).getTime();
+            const db = new Date(b.createdAt).getTime();
+            return db - da;
+          })
+          .slice(0, 3)
+          .map((o) => ({
+            id: o.id.toString(),
+            date: o.createdAt,
+            totalAmount: Number(o.total),
+            status: o.status,
+          }));
+
+        setRecentOrders(mapped);
+      } catch (error) {
+        console.error("Error cargando órdenes:", error);
         setRecentOrders([]);
-        return;
       }
+    };
 
-      const allOrders = JSON.parse(raw) as any[];
-
-      const userOrders = allOrders.filter(
-        (o) => o.userId === user.id || o.email === user.email
-      );
-
-      const mapped: LocalOrderSummary[] = userOrders
-        .sort((a, b) => {
-          const da = new Date(a.createdAt ?? a.date ?? 0).getTime();
-          const db = new Date(b.createdAt ?? b.date ?? 0).getTime();
-          return db - da;
-        })
-        .slice(0, 3)
-        .map((o) => ({
-          id: o.id?.toString() ?? "s/n",
-          date: o.createdAt ?? o.date ?? new Date().toISOString(),
-          totalAmount: Number(o.totalAmount ?? o.total ?? 0),
-          status: o.status ?? "Pendiente",
-        }));
-
-      setRecentOrders(mapped);
-    } catch {
-      setRecentOrders([]);
-    }
+    loadOrders();
   }, [user]);
 
   // Si no hay usuario → página protegida

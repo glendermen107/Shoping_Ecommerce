@@ -11,6 +11,7 @@ import { OrderItem } from './entities/order-item.entity';
 import { CartService } from '../cart/cart.service';
 import { ProductsService } from '../products/products.service';
 import { User } from '../auth/entities/user.entity';
+import { CreateOrderDto } from './dto/create-order.dto';
 
 @Injectable()
 export class OrdersService {
@@ -21,45 +22,89 @@ export class OrdersService {
     private readonly orderItemRepository: Repository<OrderItem>,
     private readonly cartService: CartService,
     private readonly productsService: ProductsService,
-  ) {}
+  ) { }
 
-  async createOrderFromCart(user: User): Promise<Order> {
-    const cart = await this.cartService.getRawCartByUserId(user.id);
+  async createOrderFromCart(
+    createOrderDto: CreateOrderDto,
+    user?: User,
+  ): Promise<Order> {
+    let orderItems: any[] = [];
 
-    if (!cart || cart.items.length === 0) {
-      throw new BadRequestException('El carrito está vacío.');
+    if (user) {
+      // Usuario autenticado: obtener carrito del usuario
+      const cart = await this.cartService.getRawCartByUserId(user.id);
+
+      if (!cart || cart.items.length === 0) {
+        throw new BadRequestException('El carrito está vacío.');
+      }
+
+      orderItems = cart.items;
+    } else {
+      // Usuario invitado: usar items del DTO
+      if (!createOrderDto.items || createOrderDto.items.length === 0) {
+        throw new BadRequestException(
+          'Para checkout invitado, debes enviar los items en el body.',
+        );
+      }
+
+      // Convertir items del DTO a formato compatible
+      orderItems = createOrderDto.items.map(item => ({
+        product: { id: item.productId },
+        quantity: item.quantity,
+        price: item.price,
+      }));
     }
 
     const newOrder = this.orderRepository.create({
-      user,
+      user: user || undefined,
       total: 0, // Lo calcularemos a continuación
       status: OrderStatus.PENDING,
       items: [],
+      // Datos del cliente desde el DTO
+      customerName: createOrderDto.customerName,
+      customerEmail: createOrderDto.customerEmail,
+      customerPhone: createOrderDto.customerPhone,
+      customerRut: createOrderDto.customerRut,
+      customerAddress: createOrderDto.customerAddress,
+      customerRegion: createOrderDto.customerRegion,
+      customerCommune: createOrderDto.customerCommune,
+      deliveryType: createOrderDto.deliveryType,
+      notes: createOrderDto.notes,
     });
 
-    for (const cartItem of cart.items) {
-      const product = await this.productsService.findOne(cartItem.product.id);
+    for (const cartItem of orderItems) {
+      const productId = user ? cartItem.product.id : cartItem.product.id;
+      const product = await this.productsService.findOne(productId);
+
       if (!product) {
         throw new NotFoundException(
-          `Producto con ID ${cartItem.product.id} no encontrado.`,
+          `Producto con ID ${productId} no encontrado.`,
         );
       }
+
+      // Para usuarios autenticados, usar precio del producto
+      // Para invitados, usar precio del item (ya calculado en frontend)
+      const itemPrice = user ? Number(product.price) : Number(cartItem.price);
 
       const orderItem = this.orderItemRepository.create({
         product,
         quantity: cartItem.quantity,
-        price: Number(product.price), // Aseguramos que sea un número para la BD
+        price: itemPrice,
       });
+
       newOrder.total += orderItem.quantity * orderItem.price;
       newOrder.items.push(orderItem);
     }
+
     // Redondear el total a 2 decimales
     newOrder.total = parseFloat(newOrder.total.toFixed(2));
 
     const savedOrder = await this.orderRepository.save(newOrder);
 
-    // Limpiar el carrito después de crear la orden
-    await this.cartService.clearCartPersistent(user.id);
+    // Limpiar el carrito después de crear la orden (solo si hay usuario)
+    if (user) {
+      await this.cartService.clearCartPersistent(user.id);
+    }
 
     return savedOrder;
   }
@@ -112,5 +157,56 @@ export class OrdersService {
     });
     if (!order) throw new NotFoundException(`Orden con ID ${id} no encontrada.`);
     return order;
+  }
+
+  async getStats() {
+    const orders = await this.orderRepository.find({
+      relations: ['user', 'items', 'items.product'],
+    });
+
+    const totalOrders = orders.length;
+    const totalRevenue = orders.reduce((sum, order) => sum + Number(order.total), 0);
+
+    // Contar clientes únicos (usuarios registrados + emails de invitados)
+    const uniqueEmails = new Set<string>();
+    orders.forEach(order => {
+      if (order.user) {
+        uniqueEmails.add(order.user.email);
+      } else if (order.customerEmail) {
+        uniqueEmails.add(order.customerEmail);
+      }
+    });
+    const totalCustomers = uniqueEmails.size;
+
+    // Órdenes activas (pending)
+    const activeOrders = orders.filter(o => o.status === OrderStatus.PENDING).length;
+
+    // Top productos (más vendidos por cantidad)
+    const productSales = new Map<number, { name: string; quantity: number }>();
+    orders.forEach(order => {
+      order.items.forEach(item => {
+        const existing = productSales.get(item.product.id);
+        if (existing) {
+          existing.quantity += item.quantity;
+        } else {
+          productSales.set(item.product.id, {
+            name: item.product.name,
+            quantity: item.quantity,
+          });
+        }
+      });
+    });
+
+    const topProducts = Array.from(productSales.values())
+      .sort((a, b) => b.quantity - a.quantity)
+      .slice(0, 5);
+
+    return {
+      totalOrders,
+      totalRevenue,
+      totalCustomers,
+      activeOrders,
+      topProducts,
+    };
   }
 }

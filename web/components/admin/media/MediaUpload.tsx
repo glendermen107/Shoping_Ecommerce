@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useRef, ChangeEvent } from 'react';
-import { uploadImage } from '@/lib/mediaApi';
+import { uploadImages } from '@/lib/mediaApi';
 
 /**
  * Props for MediaUpload component
@@ -17,62 +17,82 @@ type UploadState = 'idle' | 'uploading' | 'error';
 
 /**
  * MediaUpload Component
- * Handles file selection, validation, and upload to MinIO storage
+ * Handles multiple file selection, validation, and upload to MinIO storage
  */
 export default function MediaUpload({ onUploaded }: MediaUploadProps) {
-    const [selectedFile, setSelectedFile] = useState<File | null>(null);
+    const [selectedFiles, setSelectedFiles] = useState<File[]>([]);
     const [uploadState, setUploadState] = useState<UploadState>('idle');
     const [error, setError] = useState<string | null>(null);
-    const [preview, setPreview] = useState<string | null>(null);
+    const [previews, setPreviews] = useState<string[]>([]);
     const fileInputRef = useRef<HTMLInputElement>(null);
 
     /**
-     * Handle file selection
+     * Handle file selection (multiple files)
      */
     const handleFileSelect = (event: ChangeEvent<HTMLInputElement>) => {
-        const file = event.target.files?.[0];
+        const files = Array.from(event.target.files || []);
 
-        if (!file) {
+        if (files.length === 0) {
             return;
         }
 
         // Reset error state
         setError(null);
 
-        // Validate file type
+        // Validate file types and sizes
         const validTypes = ['image/jpeg', 'image/png', 'image/webp', 'image/gif'];
-        if (!validTypes.includes(file.type)) {
-            setError('Invalid file type. Only JPEG, PNG, WebP, and GIF images are allowed.');
-            setSelectedFile(null);
-            setPreview(null);
-            return;
-        }
-
-        // Validate file size (max 5MB)
         const maxSize = 5 * 1024 * 1024; // 5MB in bytes
-        if (file.size > maxSize) {
-            setError('File size exceeds 5MB limit. Please choose a smaller file.');
-            setSelectedFile(null);
-            setPreview(null);
+        const validFiles: File[] = [];
+        const errors: string[] = [];
+
+        for (const file of files) {
+            if (!validTypes.includes(file.type)) {
+                errors.push(`${file.name}: Invalid file type`);
+                continue;
+            }
+
+            if (file.size > maxSize) {
+                errors.push(`${file.name}: Exceeds 5MB limit`);
+                continue;
+            }
+
+            validFiles.push(file);
+        }
+
+        if (errors.length > 0) {
+            setError(errors.join(', '));
+        }
+
+        if (validFiles.length === 0) {
+            setSelectedFiles([]);
+            setPreviews([]);
             return;
         }
 
-        // Set selected file
-        setSelectedFile(file);
+        // Set selected files
+        setSelectedFiles(validFiles);
 
-        // Generate preview
-        const reader = new FileReader();
-        reader.onloadend = () => {
-            setPreview(reader.result as string);
-        };
-        reader.readAsDataURL(file);
+        // Generate previews for all valid files
+        const previewPromises = validFiles.map((file) => {
+            return new Promise<string>((resolve) => {
+                const reader = new FileReader();
+                reader.onloadend = () => {
+                    resolve(reader.result as string);
+                };
+                reader.readAsDataURL(file);
+            });
+        });
+
+        Promise.all(previewPromises).then((previewUrls) => {
+            setPreviews(previewUrls);
+        });
     };
 
     /**
      * Handle upload button click
      */
     const handleUpload = async () => {
-        if (!selectedFile) {
+        if (selectedFiles.length === 0) {
             return;
         }
 
@@ -80,24 +100,26 @@ export default function MediaUpload({ onUploaded }: MediaUploadProps) {
             setUploadState('uploading');
             setError(null);
 
-            // Call uploadImage API
-            const response = await uploadImage(selectedFile);
+            // Call uploadImages API
+            const response = await uploadImages(selectedFiles);
 
             // Reset state
             setUploadState('idle');
-            setSelectedFile(null);
-            setPreview(null);
+            setSelectedFiles([]);
+            setPreviews([]);
 
             // Reset file input
             if (fileInputRef.current) {
                 fileInputRef.current.value = '';
             }
 
-            // Call onUploaded callback with URL
-            onUploaded(response.url);
+            // Call onUploaded callback for each URL
+            response.urls.forEach((url) => {
+                onUploaded(url);
+            });
         } catch (err: any) {
             setUploadState('error');
-            setError(err.message || 'Failed to upload image. Please try again.');
+            setError(err.message || 'Failed to upload images. Please try again.');
         }
     };
 
@@ -105,14 +127,22 @@ export default function MediaUpload({ onUploaded }: MediaUploadProps) {
      * Handle clear selection
      */
     const handleClear = () => {
-        setSelectedFile(null);
-        setPreview(null);
+        setSelectedFiles([]);
+        setPreviews([]);
         setError(null);
         setUploadState('idle');
 
         if (fileInputRef.current) {
             fileInputRef.current.value = '';
         }
+    };
+
+    /**
+     * Handle remove single file
+     */
+    const handleRemoveFile = (index: number) => {
+        setSelectedFiles((prev) => prev.filter((_, i) => i !== index));
+        setPreviews((prev) => prev.filter((_, i) => i !== index));
     };
 
     const isUploading = uploadState === 'uploading';
@@ -124,12 +154,13 @@ export default function MediaUpload({ onUploaded }: MediaUploadProps) {
                 <input
                     ref={fileInputRef}
                     type="file"
+                    multiple
                     accept="image/jpeg,image/png,image/webp,image/gif"
                     onChange={handleFileSelect}
                     disabled={isUploading}
                     className="hidden"
                     id="file-upload"
-                    aria-label="Select image file to upload"
+                    aria-label="Select image files to upload"
                 />
                 <label
                     htmlFor="file-upload"
@@ -150,33 +181,47 @@ export default function MediaUpload({ onUploaded }: MediaUploadProps) {
                         />
                     </svg>
                     <span className="text-sm text-gray-600 dark:text-gray-400">
-                        Click to select an image
+                        Click to select images (multiple)
                     </span>
                     <span className="text-xs text-gray-500 dark:text-gray-500 mt-1">
-                        JPEG, PNG, WebP, or GIF (max 5MB)
+                        JPEG, PNG, WebP, or GIF (max 5MB each, up to 10 files)
                     </span>
                 </label>
             </div>
 
-            {/* Preview */}
-            {preview && (
-                <div className="relative">
-                    <img
-                        src={preview}
-                        alt={`Preview of ${selectedFile?.name || 'selected image'}`}
-                        className="w-full h-48 object-contain rounded-lg border border-gray-300 dark:border-gray-600"
-                    />
-                    {!isUploading && (
-                        <button
-                            onClick={handleClear}
-                            className="absolute top-2 right-2 bg-red-500 text-white rounded-full p-1 hover:bg-red-600"
-                            aria-label="Clear selection"
-                        >
-                            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-                            </svg>
-                        </button>
-                    )}
+            {/* Previews Grid */}
+            {previews.length > 0 && (
+                <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3">
+                    {previews.map((preview, index) => (
+                        <div key={index} className="relative group">
+                            <img
+                                src={preview}
+                                alt={`Preview of ${selectedFiles[index]?.name || 'selected image'}`}
+                                className="w-full h-32 object-cover rounded-lg border border-gray-300 dark:border-gray-600"
+                            />
+                            {!isUploading && (
+                                <button
+                                    onClick={() => handleRemoveFile(index)}
+                                    className="absolute top-1 right-1 bg-red-500 text-white rounded-full p-1 hover:bg-red-600 opacity-0 group-hover:opacity-100 transition-opacity"
+                                    aria-label={`Remove ${selectedFiles[index]?.name}`}
+                                >
+                                    <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                                    </svg>
+                                </button>
+                            )}
+                            <p className="text-xs text-gray-600 dark:text-gray-400 mt-1 truncate">
+                                {selectedFiles[index]?.name}
+                            </p>
+                        </div>
+                    ))}
+                </div>
+            )}
+
+            {/* File Count */}
+            {selectedFiles.length > 0 && (
+                <div className="text-sm text-gray-600 dark:text-gray-400 text-center">
+                    {selectedFiles.length} file{selectedFiles.length !== 1 ? 's' : ''} selected
                 </div>
             )}
 
@@ -187,44 +232,54 @@ export default function MediaUpload({ onUploaded }: MediaUploadProps) {
                 </div>
             )}
 
-            {/* Upload Button */}
-            <button
-                onClick={handleUpload}
-                disabled={!selectedFile || isUploading}
-                aria-label={isUploading ? 'Uploading image' : 'Upload selected image'}
-                className={`w-full py-2 px-4 rounded-lg font-medium transition-colors focus:outline-none focus:ring-2 focus:ring-blue-500 ${!selectedFile || isUploading
-                    ? 'bg-gray-300 dark:bg-gray-700 text-gray-500 dark:text-gray-400 cursor-not-allowed'
-                    : 'bg-blue-600 text-white hover:bg-blue-700'
-                    }`}
-            >
-                {isUploading ? (
-                    <span className="flex items-center justify-center">
-                        <svg
-                            className="animate-spin -ml-1 mr-3 h-5 w-5 text-white"
-                            xmlns="http://www.w3.org/2000/svg"
-                            fill="none"
-                            viewBox="0 0 24 24"
-                        >
-                            <circle
-                                className="opacity-25"
-                                cx="12"
-                                cy="12"
-                                r="10"
-                                stroke="currentColor"
-                                strokeWidth="4"
-                            ></circle>
-                            <path
-                                className="opacity-75"
-                                fill="currentColor"
-                                d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
-                            ></path>
-                        </svg>
-                        Uploading...
-                    </span>
-                ) : (
-                    'Upload Image'
+            {/* Action Buttons */}
+            <div className="flex gap-2">
+                {selectedFiles.length > 0 && !isUploading && (
+                    <button
+                        onClick={handleClear}
+                        className="flex-1 py-2 px-4 rounded-lg font-medium text-gray-700 dark:text-gray-300 bg-gray-200 dark:bg-gray-700 hover:bg-gray-300 dark:hover:bg-gray-600 transition-colors focus:outline-none focus:ring-2 focus:ring-gray-500"
+                    >
+                        Clear All
+                    </button>
                 )}
-            </button>
+                <button
+                    onClick={handleUpload}
+                    disabled={selectedFiles.length === 0 || isUploading}
+                    aria-label={isUploading ? 'Uploading images' : 'Upload selected images'}
+                    className={`flex-1 py-2 px-4 rounded-lg font-medium transition-colors focus:outline-none focus:ring-2 focus:ring-blue-500 ${selectedFiles.length === 0 || isUploading
+                        ? 'bg-gray-300 dark:bg-gray-700 text-gray-500 dark:text-gray-400 cursor-not-allowed'
+                        : 'bg-blue-600 text-white hover:bg-blue-700'
+                        }`}
+                >
+                    {isUploading ? (
+                        <span className="flex items-center justify-center">
+                            <svg
+                                className="animate-spin -ml-1 mr-3 h-5 w-5 text-white"
+                                xmlns="http://www.w3.org/2000/svg"
+                                fill="none"
+                                viewBox="0 0 24 24"
+                            >
+                                <circle
+                                    className="opacity-25"
+                                    cx="12"
+                                    cy="12"
+                                    r="10"
+                                    stroke="currentColor"
+                                    strokeWidth="4"
+                                ></circle>
+                                <path
+                                    className="opacity-75"
+                                    fill="currentColor"
+                                    d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
+                                ></path>
+                            </svg>
+                            Uploading {selectedFiles.length} file{selectedFiles.length !== 1 ? 's' : ''}...
+                        </span>
+                    ) : (
+                        `Upload ${selectedFiles.length > 0 ? `${selectedFiles.length} ` : ''}Image${selectedFiles.length !== 1 ? 's' : ''}`
+                    )}
+                </button>
+            </div>
         </div>
     );
 }

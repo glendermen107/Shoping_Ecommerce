@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useCart } from "../../components/cart/cartContext";
+import { toNumber, formatCLP } from "../../lib/price";
 
 // Formato CLP
 const currencyCLP = new Intl.NumberFormat("es-CL", {
@@ -89,7 +90,7 @@ export default function CartPage() {
                   <p className="text-base font-semibold text-foreground">{item.name}</p>
                   <p className="text-xs text-muted-foreground">
                     Precio unitario:{" "}
-                    <span className="font-semibold">{currencyCLP.format(item.price)}</span>
+                    <span className="font-semibold">{formatCLP(toNumber(item.price))}</span>
                   </p>
                 </div>
 
@@ -127,7 +128,7 @@ export default function CartPage() {
                   {/* Total + eliminar */}
                   <div className="flex flex-col items-end gap-1">
                     <p className="text-base font-semibold text-emerald-700">
-                      {currencyCLP.format(item.price * item.quantity)}
+                      {currencyCLP.format(toNumber(item.price) * item.quantity)}
                     </p>
                     <button
                       type="button"

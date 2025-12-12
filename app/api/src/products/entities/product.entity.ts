@@ -4,10 +4,17 @@ import {
   Column,
   ManyToOne,
   JoinColumn,
+  Index,
+  CreateDateColumn,
+  UpdateDateColumn,
 } from 'typeorm';
 import { Category } from './category.entity';
 
 @Entity({ name: 'products' })
+@Index('idx_products_category_name', ['category', 'name'])
+@Index('idx_products_name_search', ['name'])
+@Index('idx_products_created_at', ['createdAt'])
+@Index('idx_products_price', ['price'])
 export class Product {
   @PrimaryGeneratedColumn()
   id: number;
@@ -39,6 +46,13 @@ export class Product {
 
   @Column({ type: 'int', name: 'discount_percent', nullable: true })
   discountPercent: number | null;
+
+  // Timestamps for ordering and tracking
+  @CreateDateColumn({ name: 'created_at' })
+  createdAt: Date;
+
+  @UpdateDateColumn({ name: 'updated_at' })
+  updatedAt: Date;
 
   // Relación con categoría
   @ManyToOne(() => Category, (category) => category.products, {
